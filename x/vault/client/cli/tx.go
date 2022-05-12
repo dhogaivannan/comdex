@@ -38,7 +38,7 @@ func GetTxCmd() *cobra.Command {
 
 func txCreate() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create [pair_id] [amount_in] [amount_out]",
+		Use:   "create [app_vault_type_id] [pair_id] [amount_in] [amount_out]",
 		Short: "create a new vault",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -47,22 +47,26 @@ func txCreate() *cobra.Command {
 				return err
 			}
 
-			pairId, err := strconv.ParseUint(args[0], 10, 64)
+			app_vault_type_id, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+			pairId, err := strconv.ParseUint(args[1], 10, 64)
 			if err != nil {
 				return err
 			}
 
-			amountIn, ok := sdk.NewIntFromString(args[1])
+			amountIn, ok := sdk.NewIntFromString(args[2])
 			if !ok {
 				return types.ErrorInvalidAmountIn
 			}
 
-			amountOut, ok := sdk.NewIntFromString(args[2])
+			amountOut, ok := sdk.NewIntFromString(args[3])
 			if !ok {
 				return types.ErrorInvalidAmountOut
 			}
 
-			msg := types.NewMsgCreateRequest(ctx.FromAddress, pairId, amountIn, amountOut)
+			msg := types.NewMsgCreateRequest(ctx.FromAddress, app_vault_type_id, pairId, amountIn, amountOut)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err

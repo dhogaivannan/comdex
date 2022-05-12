@@ -14,12 +14,13 @@ var (
 	_ sdk.Msg = (*MsgCloseRequest)(nil)
 )
 
-func NewMsgCreateRequest(from sdk.AccAddress, pairID uint64, amountIn, amountOut sdk.Int) *MsgCreateRequest {
+func NewMsgCreateRequest(from sdk.AccAddress, app_vault_type_id uint64, pairID uint64, amountIn, amountOut sdk.Int) *MsgCreateRequest {
 	return &MsgCreateRequest{
-		From:      from.String(),
-		PairID:    pairID,
-		AmountIn:  amountIn,
-		AmountOut: amountOut,
+		From:           from.String(),
+		AppMappingId:   app_vault_type_id,
+		ExtendedPairId: pairID,
+		AmountIn:       amountIn,
+		AmountOut:      amountOut,
 	}
 }
 

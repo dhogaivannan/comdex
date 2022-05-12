@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -23,20 +22,25 @@ var (
 )
 
 var (
-	IDKey                        = []byte{0x00}
+	IDKey                          = []byte{0x00}
 	VaultKeyPrefix                 = []byte{0x10}
 	VaultForAddressByPairKeyPrefix = []byte{0x20}
+	AppMappingPrefix               = []byte{0x30}
 )
 
-func VaultKey(id uint64) []byte {
-	return append(VaultKeyPrefix, sdk.Uint64ToBigEndian(id)...)
+func VaultKey(appVaultTypeId string) []byte {
+	return append(VaultKeyPrefix, []byte(appVaultTypeId)...)
 }
 
-func VaultForAddressByPair(address sdk.AccAddress, pairID uint64) []byte {
-	v := append(VaultForAddressByPairKeyPrefix, address.Bytes()...)
-	if len(v) != 1+20 {
-		panic(fmt.Errorf("invalid key length %d; expected %d", len(v), 1+20))
+func VaultForAddressByAppAndPair(address sdk.AccAddress, appVaultTypeId string, pairID uint64) []byte {
+	if len(address.Bytes()) != 20 {
+		panic(fmt.Errorf("invalid address length %d; expected %d", len(address.Bytes()), 20))
 	}
-
+	appVaultTypeIdBytes := []byte(appVaultTypeId)
+	v := append(append(VaultForAddressByPairKeyPrefix, appVaultTypeIdBytes...), address.Bytes()...)
 	return append(v, sdk.Uint64ToBigEndian(pairID)...)
+}
+
+func GetAppMappingIdPrefixKey(id uint64) []byte {
+	return append(AppMappingPrefix, sdk.Uint64ToBigEndian(id)...)
 }

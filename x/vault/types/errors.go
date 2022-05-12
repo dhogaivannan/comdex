@@ -20,6 +20,7 @@ var (
 	ErrorInvalidCollateralizationRatio = errors.Register(ModuleName, 205, "invalid collateralization ratio")
 	ErrorPairDoesNotExist              = errors.Register(ModuleName, 206, "pair does not exist")
 	ErrorPriceDoesNotExist             = errors.Register(ModuleName, 207, "price does not exist")
+	ErrorInvalidAppMappingId           = errors.Register(ModuleName, 208, "App doesnt exist with this id")
 )
 
 var (

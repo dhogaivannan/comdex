@@ -2,17 +2,19 @@ syntax = "proto3";
 package comdex.vault.v1beta1;
 
 import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "cosmos/base/v1beta1/coin.proto";
 
 option go_package            = "github.com/comdex-official/comdex/x/vault/types";
 option (gogoproto.equal_all) = false;
 option (gogoproto.goproto_getters_all) = false;
 
 message Vault {
-  uint64 id = 1
-      [ (gogoproto.customname) = "ID", (gogoproto.moretags) = "yaml:\"id\"" ];
-  uint64 pair_id = 2 [
+  string app_vault_type_id = 1
+      [ (gogoproto.customname) = "AppVaultTypeId", (gogoproto.moretags) = "yaml:\"app_vault_type_id\"" ];
+  uint64 extended_pair_id = 2 [
     (gogoproto.customname) = "PairID",
-    (gogoproto.moretags)   = "yaml:\"pair_id\""
+    (gogoproto.moretags)   = "yaml:\"extended_pair_vault_id\""
   ];
   string owner     = 3 [ (gogoproto.moretags) = "yaml:\"owner\"" ];
   string amount_in = 4 [
@@ -25,4 +27,102 @@ message Vault {
     (gogoproto.moretags)   = "yaml:\"amount_out\"",
     (gogoproto.nullable)   = false
   ];
+  google.protobuf.Timestamp created_at = 6 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdtime) = true,
+    (gogoproto.moretags)   = "yaml:\"created_at\""
+  ];
+  string interest_accumulated = 7[
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.moretags)   = "yaml:\"interest_accrued\""
+  ];
+  string opening_fee_accumulated  = 8 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.moretags)   = "yaml:\"opening_fee_accumulated\""
+  ];
+  string closing_fee_accumulated  = 9 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.moretags)   = "yaml:\"closing_fee_accumulated\""
+  ];
+
+  string rewards_accumulated  = 10 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.moretags)   = "yaml:\"rewards_accumulated\""
+  ];
+}
+
+
+message UserVaultIdMapping {
+  string owner = 1 [
+    (gogoproto.moretags) = "yaml:\"owner\""
+  ];
+
+  repeated VaultToAppMapping  user_vault_ids = 2 [
+    (gogoproto.moretags) = "yaml:\"user_vault_ids\""
+  ];
+}
+
+message VaultToAppMapping {
+  uint64 app_mapping_id = 1[
+  (gogoproto.moretags) = "yaml:\"app_mapping_id\""
+  ];
+  repeated string addresses =2 [
+    (gogoproto.moretags) = "yaml:\"addresses\""
+  ];
+}
+
+
+message TokenMintStatistics {
+  string collateral_denom = 1 [
+    (gogoproto.moretags) = "yaml:\"collateral_denom\""
+  ];
+  map<string, uint64> minted_assets = 2 [
+    (gogoproto.moretags) = "yaml:\"minted_assets\""
+  ];
+}
+
+message AppMapping{
+  string app_name = 1 [
+    (gogoproto.moretags) = "yaml:\"app_name\""
+  ];
+  uint64 app_mapping_id = 2 [ (gogoproto.moretags) = "yaml:\"product_mapping_id\"" ];
+}
+
+message LookupTable {
+  repeated string app_vault_ids = 1 [
+    (gogoproto.moretags) = "yaml:\"app_vault_ids\""
+  ];
+  uint64 counter = 2 [ (gogoproto.moretags) = "yaml:\"counter\"" ];
+}
+
+message StableSwapVault {
+  string id = 1[
+  (gogoproto.moretags) = "yaml:\"id\""
+  ];
+  string amount_in = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.moretags)   = "yaml:\"amount_in\"",
+    (gogoproto.nullable)   = false
+  ];
+  string amount_out = 3 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.moretags)   = "yaml:\"amount_out\"",
+    (gogoproto.nullable)   = false
+  ];
+  uint64 app_mapping_id = 4 [ (gogoproto.moretags) = "yaml:\"product_mapping_id\"" ];
+  uint64 extended_pair_id = 5 [ (gogoproto.moretags) = "yaml:\"extended_pair_id\"" ];
+  google.protobuf.Timestamp created_at = 6 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdtime) = true,
+    (gogoproto.moretags)   = "yaml:\"created_at\""
+  ];
+}
+
+message StableSwapVaultLookUp {
+  string app_name = 1 [
+  (gogoproto.moretags) = "yaml:\"app_name\""
+  ];
+  uint64 stable_swap_vault_id = 2 [ (gogoproto.moretags) = "yaml:\"product_mapping_id\"" ];
+  uint64 extended_pair_id = 3 [ (gogoproto.moretags) = "yaml:\"extended_pair_id\"" ];
+
 }

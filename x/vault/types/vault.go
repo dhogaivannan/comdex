@@ -8,7 +8,7 @@ import (
 )
 
 func (m *Vault) Validate() error {
-	if m.ID == 0 {
+	if m.AppVaultTypeId == "" {
 		return fmt.Errorf("id cannot be empty")
 	}
 	if m.PairID == 0 {

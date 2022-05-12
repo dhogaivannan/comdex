@@ -39,20 +39,42 @@ func (k *Keeper) GetID(ctx sdk.Context) uint64 {
 	return id.GetValue()
 }
 
+func (k *Keeper) SetAppVaultTypeIdForId(ctx sdk.Context, appMapping types.AppMapping) {
+	var (
+		store = k.Store(ctx)
+		key   = types.GetAppMappingIdPrefixKey(appMapping.AppMappingId)
+	)
+	bz := k.cdc.MustMarshal(&appMapping)
+	store.Set(key, bz)
+}
+
+func (k *Keeper) GetAppMappingForAppMappingId(ctx sdk.Context, appMappingId uint64) (appMapping types.AppMapping, found bool) {
+	var (
+		store = k.Store(ctx)
+		key   = types.GetAppMappingIdPrefixKey(appMappingId)
+		value = store.Get(key)
+	)
+	if value == nil {
+		return appMapping, false
+	}
+	k.cdc.MustUnmarshal(value, &appMapping)
+	return appMapping, true
+}
+
 func (k *Keeper) SetVault(ctx sdk.Context, vault types.Vault) {
 	var (
 		store = k.Store(ctx)
-		key   = types.VaultKey(vault.ID)
+		key   = types.VaultKey(vault.AppVaultTypeId)
 		value = k.cdc.MustMarshal(&vault)
 	)
 
 	store.Set(key, value)
 }
 
-func (k *Keeper) GetVault(ctx sdk.Context, id uint64) (vault types.Vault, found bool) {
+func (k *Keeper) GetVault(ctx sdk.Context, appVaultTypeId string) (vault types.Vault, found bool) {
 	var (
 		store = k.Store(ctx)
-		key   = types.VaultKey(id)
+		key   = types.VaultKey(appVaultTypeId)
 		value = store.Get(key)
 	)
 
@@ -90,10 +112,10 @@ func (k *Keeper) GetVaults(ctx sdk.Context) (vaults []types.Vault) {
 	return vaults
 }
 
-func (k *Keeper) SetVaultForAddressByPair(ctx sdk.Context, address sdk.AccAddress, pairID, id uint64) {
+func (k *Keeper) SetVaultForAddressByPair(ctx sdk.Context, address sdk.AccAddress, appVaultTypeId string, pairID uint64, id uint64) {
 	var (
 		store = k.Store(ctx)
-		key   = types.VaultForAddressByPair(address, pairID)
+		key   = types.VaultForAddressByAppAndPair(address, appVaultTypeId, pairID)
 		value = k.cdc.MustMarshal(
 			&protobuftypes.UInt64Value{
 				Value: id,
@@ -104,19 +126,19 @@ func (k *Keeper) SetVaultForAddressByPair(ctx sdk.Context, address sdk.AccAddres
 	store.Set(key, value)
 }
 
-func (k *Keeper) HasVaultForAddressByPair(ctx sdk.Context, address sdk.AccAddress, pairID uint64) bool {
+func (k *Keeper) HasVaultForAddressByPair(ctx sdk.Context, address sdk.AccAddress, appVaultTypeId string, pairID uint64) bool {
 	var (
 		store = k.Store(ctx)
-		key   = types.VaultForAddressByPair(address, pairID)
+		key   = types.VaultForAddressByAppAndPair(address, appVaultTypeId, pairID)
 	)
 
 	return store.Has(key)
 }
 
-func (k *Keeper) DeleteVaultForAddressByPair(ctx sdk.Context, address sdk.AccAddress, pairID uint64) {
+func (k *Keeper) DeleteVaultForAddressByPair(ctx sdk.Context, address sdk.AccAddress, appVaultTypeId string, pairID uint64) {
 	var (
 		store = k.Store(ctx)
-		key   = types.VaultForAddressByPair(address, pairID)
+		key   = types.VaultForAddressByAppAndPair(address, appVaultTypeId, pairID)
 	)
 
 	store.Delete(key)
@@ -129,7 +151,6 @@ func (k *Keeper) VerifyCollaterlizationRatio(
 	amountOut sdk.Int,
 	assetOut assettypes.Asset,
 ) error {
-
 
 	return nil
 }

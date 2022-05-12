@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -30,11 +31,18 @@ func (k *msgServer) MsgCreate(c context.Context, msg *types.MsgCreateRequest) (*
 		return nil, err
 	}
 
-	if k.HasVaultForAddressByPair(ctx, from, msg.PairID) {
+	appMapping, found := k.GetAppMappingForAppMappingId(ctx, msg.AppMappingId)
+	if !found {
+		return nil, types.ErrorInvalidAppMappingId
+	}
+
+	AppVaultTypeId := appMapping.AppName
+
+	if k.HasVaultForAddressByPair(ctx, from, AppVaultTypeId, msg.ExtendedPairId) {
 		return nil, types.ErrorDuplicateVault
 	}
 
-	pair, found := k.GetPair(ctx, msg.PairID)
+	pair, found := k.GetPair(ctx, msg.ExtendedPairId)
 	if !found {
 		return nil, types.ErrorPairDoesNotExist
 	}
@@ -64,20 +72,21 @@ func (k *msgServer) MsgCreate(c context.Context, msg *types.MsgCreateRequest) (*
 	}
 
 	var (
-		id  = k.GetID(ctx)
-		vault = types.Vault{
-			ID:        id + 1,
-			PairID:    msg.PairID,
-			Owner:     msg.From,
-			AmountIn:  msg.AmountIn,
-			AmountOut: msg.AmountOut,
+		id                       = k.GetID(ctx)
+		AppVaultTypeIdWithNumber = AppVaultTypeId + strconv.FormatUint(id, 10)
+		vault                    = types.Vault{
+			AppVaultTypeId: AppVaultTypeIdWithNumber,
+			PairID:         msg.ExtendedPairId,
+			Owner:          msg.From,
+			AmountIn:       msg.AmountIn,
+			AmountOut:      msg.AmountOut,
 		}
 	)
 
 	k.SetID(ctx, id+1)
 	k.SetVault(ctx, vault)
-	k.SetVaultForAddressByPair(ctx, from, vault.PairID, vault.ID)
-
+	k.SetVaultForAddressByPair(ctx, from, vault.AppVaultTypeId, vault.PairID, id)
+	
 	return &types.MsgCreateResponse{}, nil
 }
 
