@@ -66,10 +66,17 @@ message VaultToAppMapping {
   uint64 app_mapping_id = 1[
   (gogoproto.moretags) = "yaml:\"app_mapping_id\""
   ];
-  repeated string addresses =2 [
+  repeated string app_vault_type_id =2 [
     (gogoproto.moretags) = "yaml:\"addresses\""
   ];
 }
+
+message TokenMintingStatisics {
+  repeated TokenMintStatistics tokens_minted=1 [
+    (gogoproto.moretags) = "yaml:\"tokens_minted\""
+  ];
+}
+//This message will be saved in the KV store with key being the product type (0/1)
 
 
 message TokenMintStatistics {

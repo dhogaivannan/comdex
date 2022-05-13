@@ -21,6 +21,7 @@ var (
 	ErrorPairDoesNotExist              = errors.Register(ModuleName, 206, "pair does not exist")
 	ErrorPriceDoesNotExist             = errors.Register(ModuleName, 207, "price does not exist")
 	ErrorInvalidAppMappingId           = errors.Register(ModuleName, 208, "App doesnt exist with this id")
+	ErrorVaultOwnerNotFound            = errors.Register(ModuleName, 209, "vault owner not found in user vault ids mapping")
 )
 
 var (

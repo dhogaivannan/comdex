@@ -2,11 +2,8 @@ package keeper
 
 import (
 	"context"
-	"strconv"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/comdex-official/comdex/x/vault/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 var (
@@ -70,23 +67,8 @@ func (k *msgServer) MsgCreate(c context.Context, msg *types.MsgCreateRequest) (*
 	if err := k.SendCoinFromModuleToAccount(ctx, types.ModuleName, from, sdk.NewCoin(assetOut.Denom, msg.AmountOut)); err != nil {
 		return nil, err
 	}
+	k.CreateNewVault(ctx, msg, AppVaultTypeId)
 
-	var (
-		id                       = k.GetID(ctx)
-		AppVaultTypeIdWithNumber = AppVaultTypeId + strconv.FormatUint(id, 10)
-		vault                    = types.Vault{
-			AppVaultTypeId: AppVaultTypeIdWithNumber,
-			PairID:         msg.ExtendedPairId,
-			Owner:          msg.From,
-			AmountIn:       msg.AmountIn,
-			AmountOut:      msg.AmountOut,
-		}
-	)
-
-	k.SetID(ctx, id+1)
-	k.SetVault(ctx, vault)
-	k.SetVaultForAddressByPair(ctx, from, vault.AppVaultTypeId, vault.PairID, id)
-	
 	return &types.MsgCreateResponse{}, nil
 }
 

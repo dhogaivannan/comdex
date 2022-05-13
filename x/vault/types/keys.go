@@ -25,7 +25,11 @@ var (
 	IDKey                          = []byte{0x00}
 	VaultKeyPrefix                 = []byte{0x10}
 	VaultForAddressByPairKeyPrefix = []byte{0x20}
-	AppMappingPrefix               = []byte{0x30}
+	AppMappingPrefixKey            = []byte{0x30}
+	LookUpTablePrefixKey           = []byte{0x40}
+	UserVaultIdPrefixKey           = []byte{0x50}
+	TokenMintPrefixKey             = []byte{0x60}
+	CAssetMintStatisticsKeyPrefix  = []byte{0x70}
 )
 
 func VaultKey(appVaultTypeId string) []byte {
@@ -42,5 +46,22 @@ func VaultForAddressByAppAndPair(address sdk.AccAddress, appVaultTypeId string, 
 }
 
 func GetAppMappingIdPrefixKey(id uint64) []byte {
-	return append(AppMappingPrefix, sdk.Uint64ToBigEndian(id)...)
+	return append(AppMappingPrefixKey, sdk.Uint64ToBigEndian(id)...)
+}
+
+func GetLookUpTablePrefixKey(id uint64) []byte {
+	return append(LookUpTablePrefixKey, sdk.Uint64ToBigEndian(id)...)
+}
+
+func GetUserVaultIdPrefixKey(address sdk.AccAddress) []byte {
+	return append(UserVaultIdPrefixKey, address.Bytes()...)
+}
+
+func GetTokenMintPrefixKey(collateralDenom string) []byte {
+	return append(UserVaultIdPrefixKey, []byte(collateralDenom)...)
+}
+
+func GetCAssetMintRecordsKey(collateralDenom string) []byte {
+
+	return append(CAssetMintStatisticsKeyPrefix, collateralDenom...)
 }
