@@ -20,7 +20,7 @@ var (
 	ErrorInvalidDebtUserExpectedDenom = sdkerrors.Register(ModuleName, 109, "given asset type is not accepted for debt auction user expected token")
 	ErrorDebtMoreBidAmount            = sdkerrors.Register(ModuleName, 110, "can not bid more minted amount")
 	ErrorDebtExpectedUserAmount       = sdkerrors.Register(ModuleName, 111, "invalid user amount")
-	ErrorInvalidDebtMintedDenom       = sdkerrors.Register(ModuleName, 109, "given asset type is not accepted for debt auction user mint token")
+	ErrorInvalidDebtMintedDenom       = sdkerrors.Register(ModuleName, 112, "given asset type is not accepted for debt auction user mint token")
 )
 
 var (
