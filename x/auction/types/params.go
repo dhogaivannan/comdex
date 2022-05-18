@@ -9,15 +9,17 @@ import (
 )
 
 var (
-	KeyLiquidationPenaltyPercent = []byte("LiquidationPenaltyPercent")
-	KeyAuctionDiscountPercent    = []byte("AuctionDiscountPercent")
-	KeyAuctionDurationSeconds    = []byte("AuctionDurationSeconds")
+	KeyLiquidationPenaltyPercent       = []byte("LiquidationPenaltyPercent")
+	KeyAuctionDiscountPercent          = []byte("AuctionDiscountPercent")
+	KeyAuctionDurationSeconds          = []byte("AuctionDurationSeconds")
+	KeyDebtMintTokenDecreasePercentage = []byte("DebtMintTokenDecreasePercentage")
 )
 
 var (
-	DefaultLiquidationPenaltyPercent = "0.15"
-	DefaultAuctionDiscountPercent    = "0.05"
-	DefaultAuctionDurationSeconds    = uint64(180)
+	DefaultLiquidationPenaltyPercent       = "0.15"
+	DefaultAuctionDiscountPercent          = "0.05"
+	DefaultAuctionDurationSeconds          = uint64(180)
+	DefaultDebtMintTokenDecreasePercentage = sdk.MustNewDecFromStr("0.03")
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
@@ -28,11 +30,12 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(liquidationPenaltyPercent string, auctionDiscountPercent string, auctionDurationSeconds uint64) Params {
+func NewParams(liquidationPenaltyPercent string, auctionDiscountPercent string, auctionDurationSeconds uint64, debtMintTokenDecreasePercentage sdk.Dec) Params {
 	return Params{
-		LiquidationPenaltyPercent: liquidationPenaltyPercent,
-		AuctionDiscountPercent:    auctionDiscountPercent,
-		AuctionDurationSeconds:    auctionDurationSeconds,
+		LiquidationPenaltyPercent:       liquidationPenaltyPercent,
+		AuctionDiscountPercent:          auctionDiscountPercent,
+		AuctionDurationSeconds:          auctionDurationSeconds,
+		DebtMintTokenDecreasePercentage: debtMintTokenDecreasePercentage,
 	}
 }
 
@@ -42,6 +45,7 @@ func DefaultParams() Params {
 		DefaultLiquidationPenaltyPercent,
 		DefaultAuctionDiscountPercent,
 		DefaultAuctionDurationSeconds,
+		DefaultDebtMintTokenDecreasePercentage,
 	)
 }
 
@@ -51,6 +55,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyLiquidationPenaltyPercent, &p.LiquidationPenaltyPercent, validateLiquidationPenalty),
 		paramtypes.NewParamSetPair(KeyAuctionDiscountPercent, &p.AuctionDiscountPercent, validateAuctionDiscount),
 		paramtypes.NewParamSetPair(KeyAuctionDurationSeconds, &p.AuctionDurationSeconds, validateAuctionDuration),
+		paramtypes.NewParamSetPair(KeyDebtMintTokenDecreasePercentage, &p.DebtMintTokenDecreasePercentage, validatePercentage),
 	}
 }
 
@@ -110,6 +115,18 @@ func validateAuctionDuration(i interface{}) error {
 	}
 	if v < 1 {
 		return fmt.Errorf("auction duration cannot be less than 1 hour")
+	}
+	return nil
+}
+
+func validatePercentage(i interface{}) error {
+	q, ok := i.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	u, _ := sdk.NewDecFromStr("0.01")
+	if q.LT(u) {
+		return fmt.Errorf("decrease percentage cannot be less than 1 percent")
 	}
 	return nil
 }

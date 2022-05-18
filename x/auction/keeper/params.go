@@ -20,12 +20,18 @@ func (k *Keeper) AuctionDurationHours(ctx sdk.Context) (s uint64) {
 	return
 }
 
+func (k *Keeper) AuctionDecreasePercentage(ctx sdk.Context) (s sdk.Dec) {
+	k.paramstore.Get(ctx, types.KeyDebtMintTokenDecreasePercentage, &s)
+	return
+}
+
 // GetParams get all parameters as types.Params
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	return types.NewParams(
 		k.LiquidationPenaltyPercent(ctx),
 		k.AuctionDiscountPercent(ctx),
 		k.AuctionDurationHours(ctx),
+		k.AuctionDecreasePercentage(ctx),
 	)
 }
 
