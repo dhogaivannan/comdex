@@ -1,0 +1,21 @@
+syntax = "proto3";
+package comdex.rewards.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+// this line is used by starport scaffolding # proto/tx/import
+
+option go_package = "github.com/comdex-official/comdex/x/rewards/types";
+
+message Internal_rewards{
+  uint64 app_mapping_ID = 1 [
+    (gogoproto.customname) = "App_mapping_ID",
+    (gogoproto.moretags) = "yaml:\"app_mapping_ID\""
+  ];
+  repeated uint64 asset_ID = 2 [
+    (gogoproto.customname) = "Asset_ID",
+    (gogoproto.moretags) = "yaml:\"asset_ID\""
+  ];
+}
+
+message external_rewards{}
