@@ -589,7 +589,7 @@ func (k Keeper) CloseDebtAuction(
 	debtAuction auctiontypes.DebtAuction,
 ) error {
 
-	if debtAuction.AuctionStatus == auctiontypes.AuctionStartNoBids {
+	if debtAuction.AuctionStatus != auctiontypes.AuctionStartNoBids {
 
 		err := k.bank.SendCoinsFromModuleToAccount(ctx, liquidationtypes.ModuleName, debtAuction.Bidder, sdk.NewCoins(debtAuction.AuctionedToken))
 		if err != nil {
