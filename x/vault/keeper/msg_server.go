@@ -575,7 +575,6 @@ func (k *msgServer) MsgRepay(c context.Context, msg *types.MsgRepayRequest) (*ty
 		// if err := k.VerifyCollaterlizationRatio(ctx, extended_pair_vault.Id, userVault.AmountIn, totalUpdatedDebt, extended_pair_vault.MinCr); err != nil {
 		// 	return nil, err
 		// }
-	
 
 		if !updatedUserDebt.GTE(extended_pair_vault.DebtFloor) {
 			return nil, types.ErrorAmountOutLessThanDebtFloor
@@ -664,49 +663,39 @@ func (k *msgServer) MsgClose(c context.Context, msg *types.MsgCloseRequest) (*ty
 		return nil, types.ErrorInvalidExtendedPairMappingData
 	}
 
-	totalUserDebt:=userVault.AmountOut.Add(*userVault.InterestAccumulated)
-	totalUserDebt=totalUserDebt.Add(*userVault.ClosingFeeAccumulated)
-	if err := k.SendCoinFromAccountToModule(ctx, depositor, types.ModuleName, sdk.NewCoin(assetOutData.Denom,totalUserDebt)); err != nil {
+	totalUserDebt := userVault.AmountOut.Add(*userVault.InterestAccumulated)
+	totalUserDebt = totalUserDebt.Add(*userVault.ClosingFeeAccumulated)
+	if err := k.SendCoinFromAccountToModule(ctx, depositor, types.ModuleName, sdk.NewCoin(assetOutData.Denom, totalUserDebt)); err != nil {
 		return nil, err
 	}
-		////////////////////////////////////////
-		//
-		//			SEND TO COLLECTOR----userVault.InterestAccumulated & userVault.ClosingFees
-		//
-		//////////////////////////////////////////
-
+	////////////////////////////////////////
+	//
+	//			SEND TO COLLECTOR----userVault.InterestAccumulated & userVault.ClosingFees
+	//
+	//////////////////////////////////////////
 
 	if err := k.BurnCoin(ctx, types.ModuleName, sdk.NewCoin(assetOutData.Denom, userVault.AmountOut)); err != nil {
-			return nil, err
-		}
-
-	if err := k.SendCoinFromModuleToAccount(ctx, types.ModuleName, depositor, sdk.NewCoin(assetInData.Denom, userVault.AmountIn)); err != nil {
-			return nil, err
+		return nil, err
 	}
 
+	if err := k.SendCoinFromModuleToAccount(ctx, types.ModuleName, depositor, sdk.NewCoin(assetInData.Denom, userVault.AmountIn)); err != nil {
+		return nil, err
+	}
 
 	//Update LookupTable minting Status
 	appExtendedPairVaultData, _ := k.GetAppExtendedPairVaultMapping(ctx, app_mapping.Id)
 
-	k.UpdateCollateralLockedAmountLockerMapping(ctx,appExtendedPairVaultData,extended_pair_vault.Id,userVault.AmountIn,false)
-	k.UpdateTokenMintedAmountLockerMapping(ctx,appExtendedPairVaultData,extended_pair_vault.Id,userVault.AmountOut,false)
-
-
+	k.UpdateCollateralLockedAmountLockerMapping(ctx, appExtendedPairVaultData, extended_pair_vault.Id, userVault.AmountIn, false)
+	k.UpdateTokenMintedAmountLockerMapping(ctx, appExtendedPairVaultData, extended_pair_vault.Id, userVault.AmountOut, false)
 
 	//Remove address from lookup table
-	
-
-
+	k.DeleteAddressFromAppExtendedPairVaultMapping(ctx, extended_pair_vault.Id, userVault.Id, app_mapping.Id)
 
 	//Remove user extendedPair to address field in UserLookupStruct
-
-
+	k.UpdateUserVaultExtendedPairMapping(ctx, extended_pair_vault.Id, msg.From, app_mapping.Id)
 
 	//Delete Vault
-	k.DeleteVault(ctx,userVault.Id)
+	k.DeleteVault(ctx, userVault.Id)
 
-
-
-
-	return &types.MsgCloseResponse{},nil
+	return &types.MsgCloseResponse{}, nil
 }
