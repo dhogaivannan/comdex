@@ -3,7 +3,6 @@ package keeper
 import (
 	"time"
 
-	assettypes "github.com/comdex-official/comdex/x/asset/types"
 	auctiontypes "github.com/comdex-official/comdex/x/auction/types"
 	collectortypes "github.com/comdex-official/comdex/x/collector/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -73,10 +72,10 @@ func (k Keeper) checkStatusOfNetFeesCollectedAndStartAuction(ctx sdk.Context, ap
 	return auctiontypes.NoAuction
 }
 
-func (k Keeper) CreateSurplusAndDebtAuctions(ctx sdk.Context) error {
+func (k Keeper) CreateSurplusAndDebtAuctions(ctx sdk.Context) {
 	appIds, found := k.GetApps(ctx)
 	if !found {
-		return assettypes.AppIdsDoesntExist
+		return
 	}
 	for _, appId := range appIds {
 		//check if auction status for an asset is false
@@ -101,7 +100,7 @@ func (k Keeper) CreateSurplusAndDebtAuctions(ctx sdk.Context) error {
 			}
 		}
 	}
-	return nil
+	return
 }
 
 func (k Keeper) makeFalseForFlags(ctx sdk.Context, appId, assetId uint64) {
