@@ -2,8 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"strconv"
-
 	"github.com/comdex-official/comdex/x/lend/expected"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -62,24 +60,24 @@ func (k Keeper) ModuleBalance(ctx sdk.Context, moduleName string, denom string) 
 }
 
 func (k Keeper) LendAsset(ctx sdk.Context, lenderAddr sdk.AccAddress, PairId uint64, loan sdk.Coin) error {
-	if !k.IsWhitelistedAsset(ctx, loan.Denom) {
-		return sdkerrors.Wrap(types.ErrInvalidAsset, loan.String())
-	}
-
-	pair, found := k.GetPair(ctx, PairId)
-	if !found {
-		return sdkerrors.Wrap(types.ErrorPairDoesNotExist, strconv.Itoa(int(PairId)))
-	}
-	asset1, _ := k.GetAsset(ctx, pair.Asset_1)
-	asset2, _ := k.GetAsset(ctx, pair.Asset_2)
-
-	if loan.Denom != asset1.Denom && loan.Denom != asset2.Denom {
-		return sdkerrors.Wrap(types.ErrBadOfferCoinAmount, loan.Denom)
-	}
-
-	userLendId := k.GetUserLendIDHistory(ctx)
-	k.SetUserLendHistory(ctx, lenderAddr, loan, userLendId)
-	k.SetUserLendIDHistory(ctx, userLendId+1)
+	//if !k.IsWhitelistedAsset(ctx, loan.Denom) {
+	//	return sdkerrors.Wrap(types.ErrInvalidAsset, loan.String())
+	//}
+	//
+	//pair, found := k.GetPair(ctx, PairId)
+	//if !found {
+	//	return sdkerrors.Wrap(types.ErrorPairDoesNotExist, strconv.Itoa(int(PairId)))
+	//}
+	//asset1, _ := k.GetAsset(ctx, pair.Asset_1)
+	//asset2, _ := k.GetAsset(ctx, pair.Asset_2)
+	//
+	//if loan.Denom != asset1.Denom && loan.Denom != asset2.Denom {
+	//	return sdkerrors.Wrap(types.ErrBadOfferCoinAmount, loan.Denom)
+	//}
+	//
+	//userLendId := k.GetUserLendIDHistory(ctx)
+	//k.SetUserLendHistory(ctx, lenderAddr, loan, userLendId)
+	//k.SetUserLendIDHistory(ctx, userLendId+1)
 
 	// send token balance to lend module account
 	// update users lending
@@ -191,11 +189,10 @@ func (k *Keeper) SetUserLendIDHistory(ctx sdk.Context, id uint64) {
 	store.Set(key, value)
 }
 
-
 func (k *Keeper) SetUserLendHistory(ctx sdk.Context, lenderAddr sdk.AccAddress, loan sdk.Coin, id uint64) {
-	
+
 	user_lend := types.LendHistory{
-		Owner: lenderAddr.String(),
+		Owner:  lenderAddr.String(),
 		Amount: &loan,
 	}
 	var (

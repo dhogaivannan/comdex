@@ -3,24 +3,24 @@ package types
 import govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 const (
-	ProposalAddWhitelistedAssets = "AddWhitelistedAssets"
-	ProposalUpdateAsset          = "UpdateWhitelistedAsset"
-	ProposalAddPairs             = "AddWhitelistedPairs"
-	ProposalUpdatePair           = "UpdateWhitelistedPair"
+	ProposalAddWhitelistedAssets = "AddWhitelistedAssetsLend"
+	ProposalUpdateAsset          = "UpdateWhitelistedAssetLend"
+	ProposalAddPairs             = "AddWhitelistedPairsLend"
+	ProposalUpdatePair           = "UpdateWhitelistedPairLend"
 )
 
 func init() {
 	govtypes.RegisterProposalType(ProposalAddWhitelistedAssets)
-	govtypes.RegisterProposalTypeCodec(&AddWhitelistedAssetsProposal{}, "comdex/AddWhitelistedAssetsProposal")
+	govtypes.RegisterProposalTypeCodec(&AddWhitelistedAssetsProposal{}, "comdex/AddWhitelistedAssetsProposalLend")
 
 	govtypes.RegisterProposalType(ProposalUpdateAsset)
-	govtypes.RegisterProposalTypeCodec(&UpdateWhitelistedAssetProposal{}, "comdex/UpdateWhitelistedAssetProposal")
+	govtypes.RegisterProposalTypeCodec(&UpdateWhitelistedAssetProposal{}, "comdex/UpdateWhitelistedAssetProposalLend")
 
 	govtypes.RegisterProposalType(ProposalAddPairs)
-	govtypes.RegisterProposalTypeCodec(&AddWhitelistedPairsProposal{}, "comdex/AddWhitelistedPairsProposal")
+	govtypes.RegisterProposalTypeCodec(&AddWhitelistedPairsProposal{}, "comdex/AddWhitelistedPairsProposalLend")
 
 	govtypes.RegisterProposalType(ProposalUpdatePair)
-	govtypes.RegisterProposalTypeCodec(&UpdateWhitelistedPairProposal{}, "comdex/UpdateWhitelistedPairProposal")
+	govtypes.RegisterProposalTypeCodec(&UpdateWhitelistedPairProposal{}, "comdex/UpdateWhitelistedPairProposalLend")
 }
 
 var (

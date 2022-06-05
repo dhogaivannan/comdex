@@ -577,7 +577,7 @@ func NewCmdUpdateWhitelistedPairProposal() *cobra.Command {
 	cmd.Flags().String(flagbaseborrowrateasset1, "", "baseborrowrateasset1")
 	cmd.Flags().String(flagbaseborrowrateasset2, "", "baseborrowrateasset2")
 	cmd.Flags().String(flagbaselendrateasset1, "", "baselendrateasset1")
-	cmd.Flags().String(flagbaselendrateasset1, "", "baselendrateasset1")
+	cmd.Flags().String(flagbaselendrateasset2, "", "baselendrateasset2")
 
 	_ = cmd.MarkFlagRequired(cli.FlagTitle)
 	_ = cmd.MarkFlagRequired(cli.FlagDescription)
