@@ -8,6 +8,41 @@ import (
 )
 
 //Generic for all auctions
+
+func (k *Keeper) SetProtocolStatistics(ctx sdk.Context, appId, assetId uint64, amount sdk.Int) {
+	var (
+		store = k.Store(ctx)
+		key   = auctiontypes.ProtocolStatisticsKey(appId, assetId)
+	)
+	stat, found := k.GetProtocolStat(ctx, appId, assetId)
+	if found {
+		stat.Loss = stat.Loss.Add(amount.ToDec())
+		value := k.cdc.MustMarshal(&stat)
+		store.Set(key, value)
+	} else {
+		var stats auctiontypes.ProtocolStatistics
+		stats.AppId = appId
+		stats.AssetId = assetId
+		stats.Loss = amount.ToDec()
+		value := k.cdc.MustMarshal(&stats)
+		store.Set(key, value)
+	}
+
+}
+
+func (k *Keeper) GetProtocolStat(ctx sdk.Context, appId, assetId uint64) (stats auctiontypes.ProtocolStatistics, found bool) {
+	var (
+		store = k.Store(ctx)
+		key   = auctiontypes.ProtocolStatisticsKey(appId, assetId)
+		value = store.Get(key)
+	)
+	if value == nil {
+		return stats, false
+	}
+	k.cdc.MustUnmarshal(value, &stats)
+	return stats, true
+}
+
 func (k *Keeper) GetAuctionID(ctx sdk.Context) uint64 {
 	var (
 		store = k.Store(ctx)
@@ -66,8 +101,13 @@ func (k *Keeper) SetUserBiddingID(ctx sdk.Context, id uint64) {
 	store.Set(key, value)
 }
 
-func (k *Keeper) GetAuctionType(ctx sdk.Context, auctionTypeId uint64) (string, error) {
-	params := k.GetParams(ctx)
+func (k *Keeper) GetAuctionType(ctx sdk.Context, auctionTypeId uint64, appId uint64) (string, error) {
+
+	params, found := k.GetAuctionParams(ctx, appId)
+
+	if !found {
+		return "", auctiontypes.ErrorInvalidAuctionParams
+	}
 	if auctionTypeId == params.SurplusId {
 		return auctiontypes.SurplusString, nil
 	} else if auctionTypeId == params.DebtId {
@@ -99,7 +139,7 @@ func (k *Keeper) GetAllAuctions(ctx sdk.Context) (auctions []auctiontypes.Surplu
 //SURPLUS
 
 func (k *Keeper) SetSurplusAuction(ctx sdk.Context, auction auctiontypes.SurplusAuction) error {
-	auctionType, err := k.GetAuctionType(ctx, auction.AuctionMappingId)
+	auctionType, err := k.GetAuctionType(ctx, auction.AuctionMappingId, auction.AppId)
 	if err != nil {
 		return err
 	}
@@ -113,7 +153,7 @@ func (k *Keeper) SetSurplusAuction(ctx sdk.Context, auction auctiontypes.Surplus
 }
 
 func (k *Keeper) SetHistorySurplusAuction(ctx sdk.Context, auction auctiontypes.SurplusAuction) error {
-	auctionType, err := k.GetAuctionType(ctx, auction.AuctionMappingId)
+	auctionType, err := k.GetAuctionType(ctx, auction.AuctionMappingId, auction.AppId)
 	if err != nil {
 		return err
 	}
@@ -127,7 +167,7 @@ func (k *Keeper) SetHistorySurplusAuction(ctx sdk.Context, auction auctiontypes.
 }
 
 func (k *Keeper) DeleteSurplusAuction(ctx sdk.Context, auction auctiontypes.SurplusAuction) error {
-	auctionType, err := k.GetAuctionType(ctx, auction.AuctionMappingId)
+	auctionType, err := k.GetAuctionType(ctx, auction.AuctionMappingId, auction.AppId)
 	if err != nil {
 		return err
 	}
@@ -140,7 +180,7 @@ func (k *Keeper) DeleteSurplusAuction(ctx sdk.Context, auction auctiontypes.Surp
 }
 
 func (k *Keeper) GetSurplusAuction(ctx sdk.Context, appId, auctionMappingId, auctionId uint64) (auction auctiontypes.SurplusAuction, err error) {
-	auctionType, err := k.GetAuctionType(ctx, auctionMappingId)
+	auctionType, err := k.GetAuctionType(ctx, auctionMappingId, appId)
 	if err != nil {
 		return auction, err
 	}
@@ -158,7 +198,7 @@ func (k *Keeper) GetSurplusAuction(ctx sdk.Context, appId, auctionMappingId, auc
 }
 
 func (k *Keeper) GetHistorySurplusAuction(ctx sdk.Context, appId, auctionMappingId, auctionId uint64) (auction auctiontypes.SurplusAuction, err error) {
-	auctionType, err := k.GetAuctionType(ctx, auctionMappingId)
+	auctionType, err := k.GetAuctionType(ctx, auctionMappingId, appId)
 	if err != nil {
 		return auction, err
 	}
@@ -212,7 +252,7 @@ func (k *Keeper) GetHistorySurplusAuctions(ctx sdk.Context, appId uint64) (aucti
 }
 
 func (k *Keeper) SetSurplusUserBidding(ctx sdk.Context, userBiddings auctiontypes.SurplusBiddings) error {
-	auctionType, err := k.GetAuctionType(ctx, userBiddings.AuctionMappingId)
+	auctionType, err := k.GetAuctionType(ctx, userBiddings.AuctionMappingId, userBiddings.AppId)
 	if err != nil {
 		return err
 	}
@@ -226,7 +266,7 @@ func (k *Keeper) SetSurplusUserBidding(ctx sdk.Context, userBiddings auctiontype
 }
 
 func (k *Keeper) SetHistorySurplusUserBidding(ctx sdk.Context, userBiddings auctiontypes.SurplusBiddings) error {
-	auctionType, err := k.GetAuctionType(ctx, userBiddings.AuctionMappingId)
+	auctionType, err := k.GetAuctionType(ctx, userBiddings.AuctionMappingId, userBiddings.AppId)
 	if err != nil {
 		return err
 	}
@@ -240,7 +280,7 @@ func (k *Keeper) SetHistorySurplusUserBidding(ctx sdk.Context, userBiddings auct
 }
 
 func (k *Keeper) DeleteSurplusUserBidding(ctx sdk.Context, userBiddings auctiontypes.SurplusBiddings) error {
-	auctionType, err := k.GetAuctionType(ctx, userBiddings.AuctionMappingId)
+	auctionType, err := k.GetAuctionType(ctx, userBiddings.AuctionMappingId, userBiddings.AppId)
 	if err != nil {
 		return err
 	}
@@ -321,7 +361,7 @@ func (k *Keeper) GetHistorySurplusUserBiddings(ctx sdk.Context, bidder string, a
 //DEBT
 
 func (k *Keeper) SetDebtAuction(ctx sdk.Context, auction auctiontypes.DebtAuction) error {
-	auctionType, err := k.GetAuctionType(ctx, auction.AuctionMappingId)
+	auctionType, err := k.GetAuctionType(ctx, auction.AuctionMappingId, auction.AppId)
 	if err != nil {
 		return err
 	}
@@ -335,7 +375,7 @@ func (k *Keeper) SetDebtAuction(ctx sdk.Context, auction auctiontypes.DebtAuctio
 }
 
 func (k *Keeper) SetHistoryDebtAuction(ctx sdk.Context, auction auctiontypes.DebtAuction) error {
-	auctionType, err := k.GetAuctionType(ctx, auction.AuctionMappingId)
+	auctionType, err := k.GetAuctionType(ctx, auction.AuctionMappingId, auction.AppId)
 	if err != nil {
 		return err
 	}
@@ -349,7 +389,7 @@ func (k *Keeper) SetHistoryDebtAuction(ctx sdk.Context, auction auctiontypes.Deb
 }
 
 func (k *Keeper) DeleteDebtAuction(ctx sdk.Context, auction auctiontypes.DebtAuction) error {
-	auctionType, err := k.GetAuctionType(ctx, auction.AuctionMappingId)
+	auctionType, err := k.GetAuctionType(ctx, auction.AuctionMappingId, auction.AppId)
 	if err != nil {
 		return err
 	}
@@ -362,7 +402,7 @@ func (k *Keeper) DeleteDebtAuction(ctx sdk.Context, auction auctiontypes.DebtAuc
 }
 
 func (k *Keeper) GetDebtAuction(ctx sdk.Context, appId, auctionMappingId, auctionId uint64) (auction auctiontypes.DebtAuction, err error) {
-	auctionType, err := k.GetAuctionType(ctx, auctionMappingId)
+	auctionType, err := k.GetAuctionType(ctx, auctionMappingId, appId)
 	if err != nil {
 		return auction, err
 	}
@@ -379,7 +419,7 @@ func (k *Keeper) GetDebtAuction(ctx sdk.Context, appId, auctionMappingId, auctio
 }
 
 func (k *Keeper) GetHistoryDebtAuction(ctx sdk.Context, appId, auctionMappingId, auctionId uint64) (auction auctiontypes.DebtAuction, err error) {
-	auctionType, err := k.GetAuctionType(ctx, auctionMappingId)
+	auctionType, err := k.GetAuctionType(ctx, auctionMappingId, appId)
 	if err != nil {
 		return auction, err
 	}
@@ -432,7 +472,7 @@ func (k *Keeper) GetHistoryDebtAuctions(ctx sdk.Context, appId uint64) (auctions
 }
 
 func (k *Keeper) SetDebtUserBidding(ctx sdk.Context, userBiddings auctiontypes.DebtBiddings) error {
-	auctionType, err := k.GetAuctionType(ctx, userBiddings.AuctionMappingId)
+	auctionType, err := k.GetAuctionType(ctx, userBiddings.AuctionMappingId, userBiddings.AppId)
 	if err != nil {
 		return err
 	}
@@ -446,7 +486,7 @@ func (k *Keeper) SetDebtUserBidding(ctx sdk.Context, userBiddings auctiontypes.D
 }
 
 func (k *Keeper) SetHistoryDebtUserBidding(ctx sdk.Context, userBiddings auctiontypes.DebtBiddings) error {
-	auctionType, err := k.GetAuctionType(ctx, userBiddings.AuctionMappingId)
+	auctionType, err := k.GetAuctionType(ctx, userBiddings.AuctionMappingId, userBiddings.AppId)
 	if err != nil {
 		return err
 	}
@@ -460,7 +500,7 @@ func (k *Keeper) SetHistoryDebtUserBidding(ctx sdk.Context, userBiddings auction
 }
 
 func (k *Keeper) DeleteDebtUserBidding(ctx sdk.Context, userBiddings auctiontypes.DebtBiddings) error {
-	auctionType, err := k.GetAuctionType(ctx, userBiddings.AuctionMappingId)
+	auctionType, err := k.GetAuctionType(ctx, userBiddings.AuctionMappingId, userBiddings.AppId)
 	if err != nil {
 		return err
 	}
@@ -537,7 +577,7 @@ func (k *Keeper) GetHistoryDebtUserBiddings(ctx sdk.Context, bidder string, appI
 //DUTCH
 
 func (k *Keeper) SetDutchAuction(ctx sdk.Context, auction auctiontypes.DutchAuction) error {
-	auctionType, err := k.GetAuctionType(ctx, auction.AuctionMappingId)
+	auctionType, err := k.GetAuctionType(ctx, auction.AuctionMappingId, auction.AppId)
 	if err != nil {
 		return err
 	}
@@ -552,7 +592,7 @@ func (k *Keeper) SetDutchAuction(ctx sdk.Context, auction auctiontypes.DutchAuct
 }
 
 func (k *Keeper) SetHistoryDutchAuction(ctx sdk.Context, auction auctiontypes.DutchAuction) error {
-	auctionType, err := k.GetAuctionType(ctx, auction.AuctionMappingId)
+	auctionType, err := k.GetAuctionType(ctx, auction.AuctionMappingId, auction.AppId)
 	if err != nil {
 		return err
 	}
@@ -566,7 +606,7 @@ func (k *Keeper) SetHistoryDutchAuction(ctx sdk.Context, auction auctiontypes.Du
 }
 
 func (k *Keeper) DeleteDutchAuction(ctx sdk.Context, auction auctiontypes.DutchAuction) error {
-	auctionType, err := k.GetAuctionType(ctx, auction.AuctionMappingId)
+	auctionType, err := k.GetAuctionType(ctx, auction.AuctionMappingId, auction.AppId)
 	if err != nil {
 		return err
 	}
@@ -579,8 +619,10 @@ func (k *Keeper) DeleteDutchAuction(ctx sdk.Context, auction auctiontypes.DutchA
 }
 
 func (k *Keeper) GetDutchAuction(ctx sdk.Context, appId, auctionMappingId, auctionId uint64) (auction auctiontypes.DutchAuction, err error) {
-	auctionType, err := k.GetAuctionType(ctx, auctionMappingId)
+
+	auctionType, err := k.GetAuctionType(ctx, auctionMappingId, appId)
 	if err != nil {
+
 		return auction, err
 	}
 	var (
@@ -588,6 +630,7 @@ func (k *Keeper) GetDutchAuction(ctx sdk.Context, appId, auctionMappingId, aucti
 		key   = auctiontypes.AuctionKey(appId, auctionType, auctionId)
 		value = store.Get(key)
 	)
+
 	if value == nil {
 		return auction, sdkerrors.ErrNotFound
 	}
@@ -597,7 +640,7 @@ func (k *Keeper) GetDutchAuction(ctx sdk.Context, appId, auctionMappingId, aucti
 }
 
 func (k *Keeper) GetHistoryDutchAuction(ctx sdk.Context, appId, auctionMappingId, auctionId uint64) (auction auctiontypes.DutchAuction, err error) {
-	auctionType, err := k.GetAuctionType(ctx, auctionMappingId)
+	auctionType, err := k.GetAuctionType(ctx, auctionMappingId, appId)
 	if err != nil {
 		return auction, err
 	}
@@ -651,7 +694,7 @@ func (k *Keeper) GetHistoryDutchAuctions(ctx sdk.Context, appId uint64) (auction
 }
 
 func (k *Keeper) SetDutchUserBidding(ctx sdk.Context, userBiddings auctiontypes.DutchBiddings) error {
-	auctionType, err := k.GetAuctionType(ctx, userBiddings.AuctionMappingId)
+	auctionType, err := k.GetAuctionType(ctx, userBiddings.AuctionMappingId, userBiddings.AppId)
 	if err != nil {
 		return err
 	}
@@ -665,7 +708,7 @@ func (k *Keeper) SetDutchUserBidding(ctx sdk.Context, userBiddings auctiontypes.
 }
 
 func (k *Keeper) SetHistoryDutchUserBidding(ctx sdk.Context, userBiddings auctiontypes.DutchBiddings) error {
-	auctionType, err := k.GetAuctionType(ctx, userBiddings.AuctionMappingId)
+	auctionType, err := k.GetAuctionType(ctx, userBiddings.AuctionMappingId, userBiddings.AppId)
 	if err != nil {
 		return err
 	}
@@ -679,7 +722,7 @@ func (k *Keeper) SetHistoryDutchUserBidding(ctx sdk.Context, userBiddings auctio
 }
 
 func (k *Keeper) DeleteDutchUserBidding(ctx sdk.Context, userBiddings auctiontypes.DutchBiddings) error {
-	auctionType, err := k.GetAuctionType(ctx, userBiddings.AuctionMappingId)
+	auctionType, err := k.GetAuctionType(ctx, userBiddings.AuctionMappingId, userBiddings.AppId)
 	if err != nil {
 		return err
 	}
@@ -757,4 +800,31 @@ func (k *Keeper) GetHistoryDutchUserBiddings(ctx sdk.Context, bidder string, app
 	}
 
 	return userBiddings
+}
+
+func (k *Keeper) SetAuctionParams(ctx sdk.Context, auctionParams auctiontypes.AuctionParams) {
+	var (
+		store = k.Store(ctx)
+		key   = auctiontypes.AuctionParamsKey(auctionParams.AppId)
+		value = k.cdc.MustMarshal(&auctionParams)
+	)
+
+	store.Set(key, value)
+}
+
+func (k *Keeper) GetAuctionParams(ctx sdk.Context, AppId uint64) (asset auctiontypes.AuctionParams, found bool) {
+	key := auctiontypes.AuctionParamsKey(AppId)
+
+	var (
+		store = k.Store(ctx)
+
+		value = store.Get(key)
+	)
+
+	if value == nil {
+		return asset, false
+	}
+
+	k.cdc.MustUnmarshal(value, &asset)
+	return asset, true
 }

@@ -22,7 +22,10 @@ func (k Keeper) LiquidateVaults(ctx sdk.Context) error {
 
 			vaultIds := vaults[j].VaultIds
 			for l := range vaultIds {
-				vault, _ := k.GetVault(ctx, vaultIds[l])
+				vault, found := k.GetVault(ctx, vaultIds[l])
+				if !found {
+					continue
+				}
 
 				extPair, _ := k.GetPairsVault(ctx, vault.ExtendedPairVaultID)
 
@@ -225,8 +228,7 @@ func (k Keeper) UnliquidateLockedVaults(ctx sdk.Context) error {
 
 	for _, lockedVault := range lockedVaults {
 
-		ExtPair, _ := k.GetPairsVault(ctx, lockedVault.ExtendedPairId)
-		if lockedVault.IsAuctionComplete && lockedVault.CurrentCollaterlisationRatio.GTE(ExtPair.MinCr) {
+		if lockedVault.IsAuctionComplete {
 			//also calculate the current collaterlization ration to ensure there is no sudden changes
 			userAddress, err := sdk.AccAddressFromBech32(lockedVault.Owner)
 			if err != nil {
@@ -247,6 +249,16 @@ func (k Keeper) UnliquidateLockedVaults(ctx sdk.Context) error {
 				continue
 			}
 
+			if lockedVault.AmountIn.IsZero() && lockedVault.AmountOut.IsZero() {
+				err := k.CreateLockedVaultHistory(ctx, lockedVault)
+				if err != nil {
+					return err
+				}
+				k.UpdateUserVaultExtendedPairMapping(ctx, lockedVault.ExtendedPairId, lockedVault.Owner, lockedVault.AppMappingId)
+				k.DeleteLockedVault(ctx, lockedVault.LockedVaultId)
+				continue
+			}
+
 			if lockedVault.AmountOut.IsZero() {
 
 				err := k.CreateLockedVaultHistory(ctx, lockedVault)
@@ -254,7 +266,7 @@ func (k Keeper) UnliquidateLockedVaults(ctx sdk.Context) error {
 					return err
 				}
 
-				//k.DeleteAddressFromAppExtendedPairVaultMapping(ctx, lockedVault.ExtendedPairId, lockedVault.OriginalVaultId, lockedVault.AppMappingId)
+				k.UpdateUserVaultExtendedPairMapping(ctx, lockedVault.ExtendedPairId, lockedVault.Owner, lockedVault.AppMappingId)
 
 				k.DeleteLockedVault(ctx, lockedVault.LockedVaultId)
 				if err := k.SendCoinFromModuleToAccount(ctx, vaulttypes.ModuleName, userAddress, sdk.NewCoin(assetIn.Denom, lockedVault.AmountIn)); err != nil {
@@ -281,7 +293,7 @@ func (k Keeper) UnliquidateLockedVaults(ctx sdk.Context) error {
 				if err != nil {
 					return err
 				}
-				//k.DeleteAddressFromAppExtendedPairVaultMapping(ctx, lockedVault.ExtendedPairId, lockedVault.OriginalVaultId, lockedVault.AppMappingId)
+				k.UpdateUserVaultExtendedPairMapping(ctx, lockedVault.ExtendedPairId, lockedVault.Owner, lockedVault.AppMappingId)
 
 				err = k.CreteNewVault(ctx, lockedVault.Owner, lockedVault.AppMappingId, lockedVault.ExtendedPairId, lockedVault.AmountIn, lockedVault.AmountOut)
 				if err != nil {

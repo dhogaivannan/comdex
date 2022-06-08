@@ -11,6 +11,7 @@ import (
 
 type AccountKeeper interface {
 	GetModuleAccount(ctx sdk.Context, name string) authtypes.ModuleAccountI
+	GetModuleAddress(name string) sdk.AccAddress
 }
 
 type BankKeeper interface {
@@ -54,6 +55,7 @@ type VaultKeeper interface {
 	//BurnCAssets(ctx sdk.Context, moduleName string, collateralDenom string, denom string, amount sdk.Int) error
 	GetAppExtendedPairVaultMapping(ctx sdk.Context, appMappingId uint64) (appExtendedPairVaultData vaultttypes.AppExtendedPairVaultMapping, found bool)
 	SetAppExtendedPairVaultMapping(ctx sdk.Context, appExtendedPairVaultData vaultttypes.AppExtendedPairVaultMapping) error
+	UpdateCollateralLockedAmountLockerMapping(ctx sdk.Context, valutLookupData vaultttypes.AppExtendedPairVaultMapping, extendedPairId uint64, amount sdk.Int, changeType bool)
 }
 
 type CollectorKeeper interface {
@@ -61,12 +63,13 @@ type CollectorKeeper interface {
 	UpdateCollector(ctx sdk.Context, appId, asset_id uint64, CollectedStabilityFee, CollectedClosingFee, CollectedOpeningFee, LiquidationRewardsCollected sdk.Int) error
 	SetCollectorLookupTable(ctx sdk.Context, records ...types.CollectorLookupTable) error
 	GetCollectorLookupTable(ctx sdk.Context, app_id uint64) (collectorLookup types.CollectorLookup, found bool)
-	SetCollectorAuctionLookupTable(ctx sdk.Context, records ...types.CollectorAuctionLookupTable) error
-	GetCollectorAuctionLookupTable(ctx sdk.Context, app_id uint64) (appIdToAuctionData types.CollectorAuctionLookupTable, found bool)
+	// SetCollectorAuctionLookupTable(ctx sdk.Context, records ...types.CollectorAuctionLookupTable) error
+	// GetCollectorAuctionLookupTable(ctx sdk.Context, app_id uint64) (appIdToAuctionData types.CollectorAuctionLookupTable, found bool)
 	GetAuctionMappingForApp(ctx sdk.Context, appId uint64) (collectorAuctionLookupTable types.CollectorAuctionLookupTable, found bool)
 	GetNetFeeCollectedData(ctx sdk.Context, app_id uint64) (netFeeData types.NetFeeCollectedData, found bool)
 	GetAmountFromCollector(ctx sdk.Context, appId, asset_id uint64, amount sdk.Int) (sdk.Int, error)
 	SetNetFeeCollectedData(ctx sdk.Context, app_id, asset_id uint64, fee sdk.Int) error
+	SetAuctionMappingForApp(ctx sdk.Context, records ...types.CollectorAuctionLookupTable) error
 }
 
 type TokenMintKeeper interface {

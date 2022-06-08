@@ -2,9 +2,9 @@ package keeper
 
 import (
 	assettypes "github.com/comdex-official/comdex/x/asset/types"
-	vaultttypes "github.com/comdex-official/comdex/x/vault/types"
 	"github.com/comdex-official/comdex/x/collector/types"
 	liquidationtypes "github.com/comdex-official/comdex/x/liquidation/types"
+	vaultttypes "github.com/comdex-official/comdex/x/vault/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
@@ -13,6 +13,9 @@ func (k *Keeper) GetModuleAccount(ctx sdk.Context, name string) authtypes.Module
 	return k.account.GetModuleAccount(ctx, name)
 }
 
+func (k *Keeper) GetModuleAddress(ctx sdk.Context, name string) sdk.AccAddress {
+	return k.account.GetModuleAddress(name)
+}
 func (k *Keeper) GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin {
 	return k.bank.GetBalance(ctx, addr, denom)
 }
@@ -101,13 +104,13 @@ func (k *Keeper) GetCollectorLookupTable(ctx sdk.Context, app_id uint64) (collec
 	return k.collector.GetCollectorLookupTable(ctx, app_id)
 }
 
-func (k *Keeper) SetCollectorAuctionLookupTable(ctx sdk.Context, records ...types.CollectorAuctionLookupTable) error {
-	return k.collector.SetCollectorAuctionLookupTable(ctx, records...)
-}
+// func (k *Keeper) SetCollectorAuctionLookupTable(ctx sdk.Context, records ...types.CollectorAuctionLookupTable) error {
+// 	return k.collector.SetCollectorAuctionLookupTable(ctx, records...)
+// }
 
-func (k *Keeper) GetCollectorAuctionLookupTable(ctx sdk.Context, app_id uint64) (appIdToAuctionData types.CollectorAuctionLookupTable, found bool) {
-	return k.collector.GetCollectorAuctionLookupTable(ctx, app_id)
-}
+// func (k *Keeper) GetCollectorAuctionLookupTable(ctx sdk.Context, app_id uint64) (appIdToAuctionData types.CollectorAuctionLookupTable, found bool) {
+// 	return k.collector.GetCollectorAuctionLookupTable(ctx, app_id)
+// }
 func (k *Keeper) GetNetFeeCollectedData(ctx sdk.Context, app_id uint64) (netFeeData types.NetFeeCollectedData, found bool) {
 	return k.collector.GetNetFeeCollectedData(ctx, app_id)
 }
@@ -150,10 +153,17 @@ func (k *Keeper) GetAppExtendedPairVaultMapping(ctx sdk.Context, appMappingId ui
 	return k.vault.GetAppExtendedPairVaultMapping(ctx, appMappingId)
 }
 
-func (k *Keeper) SetAppExtendedPairVaultMapping(ctx sdk.Context, appExtendedPairVaultData vaultttypes.AppExtendedPairVaultMapping)error {
+func (k *Keeper) SetAppExtendedPairVaultMapping(ctx sdk.Context, appExtendedPairVaultData vaultttypes.AppExtendedPairVaultMapping) error {
 	return k.vault.SetAppExtendedPairVaultMapping(ctx, appExtendedPairVaultData)
 }
 
-func (k *Keeper) GetAuctionMappingForApp(ctx sdk.Context, appId uint64) (collectorAuctionLookupTable types.CollectorAuctionLookupTable, found bool){
+func (k *Keeper) GetAuctionMappingForApp(ctx sdk.Context, appId uint64) (collectorAuctionLookupTable types.CollectorAuctionLookupTable, found bool) {
 	return k.collector.GetAuctionMappingForApp(ctx, appId)
+}
+func (k *Keeper) SetAuctionMappingForApp(ctx sdk.Context, records ...types.CollectorAuctionLookupTable) error {
+	return k.collector.SetAuctionMappingForApp(ctx, records...)
+}
+
+func (k *Keeper) UpdateCollateralLockedAmountLockerMapping(ctx sdk.Context, valutLookupData vaultttypes.AppExtendedPairVaultMapping, extendedPairId uint64, amount sdk.Int, changeType bool) {
+	k.vault.UpdateCollateralLockedAmountLockerMapping(ctx, valutLookupData, extendedPairId, amount, changeType)
 }
