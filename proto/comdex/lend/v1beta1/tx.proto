@@ -14,14 +14,20 @@ service Msg {
   // the ModuleAccount.
   rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
 
+  // BorrowAsset defines a method for borrowing coins from the ModuleAccount.
+  rpc Borrow(MsgBorrow) returns (MsgBorrowResponse);
+
+  // RepayAsset defines a method for repaying borrowed coins to the ModuleAccount.
+  rpc Repay(MsgRepay) returns (MsgRepayResponse);
+
   // FundModuleAccounts funds an existing module account
   rpc FundModuleAccounts(MsgFundModuleAccounts) returns (MsgFundModuleAccountsResponse);
 }
 
 message MsgLend {
-  string                   lender = 1 [(gogoproto.moretags) = "yaml:\"lender\""];
-  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
-  uint64                  pair_id = 3;
+  string                   lender = 1;
+  uint64                   pair_id = 2;
+  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
 }
 
 message MsgWithdraw {
@@ -29,10 +35,14 @@ message MsgWithdraw {
   cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
 }
 
-message MsgDepositLend {
-  string from = 1 [(gogoproto.moretags) = "yaml:\"from\""];
-  uint64 id = 2 [(gogoproto.customname) = "ID", (gogoproto.moretags) = "yaml:\"id\""];
-  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
+message MsgBorrow {
+  string                   borrower = 1;
+  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+}
+
+message MsgRepay {
+  string                   borrower = 1;
+  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
 }
 
 message MsgFundModuleAccounts {
@@ -45,6 +55,10 @@ message MsgLendResponse {}
 
 message MsgWithdrawResponse {}
 
-message MsgDepositResponse {}
+message MsgBorrowResponse {}
+
+message MsgRepayResponse {
+  cosmos.base.v1beta1.Coin repaid = 1 [(gogoproto.nullable) = false];
+}
 
 message MsgFundModuleAccountsResponse {}

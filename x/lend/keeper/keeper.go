@@ -105,10 +105,6 @@ func (k Keeper) LendAsset(ctx sdk.Context, lenderAddr sdk.AccAddress, PairId uin
 
 func (k Keeper) WithdrawAsset(ctx sdk.Context, lenderAddr sdk.AccAddress, withdrawal sdk.Coin) error {
 
-	if !k.IsWhitelistedAsset(ctx, withdrawal.Denom) {
-		return sdkerrors.Wrap(types.ErrInvalidAsset, withdrawal.String())
-	}
-
 	// Ensure module account has sufficient unreserved tokens to withdraw
 	reservedAmount := k.GetReserveFunds(ctx, withdrawal.Denom)
 	currentCollateral := k.GetCollateralAmount(ctx, lenderAddr, withdrawal.Denom)
@@ -135,9 +131,6 @@ func (k Keeper) WithdrawAsset(ctx sdk.Context, lenderAddr sdk.AccAddress, withdr
 }
 
 func (k Keeper) BorrowAsset(ctx sdk.Context, lenderAddr sdk.AccAddress, loan sdk.Coin) error {
-	if !k.IsWhitelistedAsset(ctx, loan.Denom) {
-		return sdkerrors.Wrap(types.ErrInvalidAsset, loan.String())
-	}
 
 	// send token balance to lend module account
 	loanTokens := sdk.NewCoins(loan)
@@ -153,17 +146,10 @@ func (k Keeper) RepayAsset(ctx sdk.Context, borrowerAddr sdk.AccAddress, payment
 		return sdk.ZeroInt(), sdkerrors.Wrap(types.ErrInvalidAsset, payment.String())
 	}
 
-	if !k.IsWhitelistedAsset(ctx, payment.Denom) {
-		return sdk.ZeroInt(), sdkerrors.Wrap(types.ErrInvalidAsset, payment.String())
-	}
-
 	return payment.Amount, nil
 }
 
 func (k Keeper) FundModAcc(ctx sdk.Context, moduleName string, lenderAddr sdk.AccAddress, payment sdk.Coin) error {
-	if !k.IsWhitelistedAsset(ctx, payment.Denom) {
-		return sdkerrors.Wrap(types.ErrInvalidAsset, payment.String())
-	}
 
 	loanTokens := sdk.NewCoins(payment)
 	if err := k.bank.SendCoinsFromAccountToModule(ctx, lenderAddr, moduleName, loanTokens); err != nil {
@@ -193,35 +179,6 @@ func (k *Keeper) SetUserLendIDHistory(ctx sdk.Context, id uint64) {
 		)
 	)
 	store.Set(key, value)
-}
-
-func (k *Keeper) SetUserLendHistory(ctx sdk.Context, lenderAddr sdk.AccAddress, loan sdk.Coin, id uint64) {
-
-	user_lend := types.LendHistory{
-		Owner:  lenderAddr.String(),
-		Amount: &loan,
-	}
-	var (
-		store = k.Store(ctx)
-		key   = types.LendUserHistoryKey(id)
-		value = k.cdc.MustMarshal(&user_lend)
-	)
-	store.Set(key, value)
-}
-
-func (k *Keeper) GetUserLendHistory(ctx sdk.Context, id uint64) (user_lend types.LendHistory, found bool) {
-	var (
-		store = k.Store(ctx)
-		key   = types.LendUserHistoryKey(id)
-		value = store.Get(key)
-	)
-
-	if value == nil {
-		return user_lend, false
-	}
-
-	k.cdc.MustUnmarshal(value, &user_lend)
-	return user_lend, true
 }
 
 func (k *Keeper) GetUserLendIDHistory(ctx sdk.Context) uint64 {
