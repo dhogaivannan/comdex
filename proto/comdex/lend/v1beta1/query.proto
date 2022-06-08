@@ -27,7 +27,7 @@ message QueryLendsRequest {
 }
 
 message QueryLendsResponse {
-  repeated Lend_Asset lends = 1 [
+  repeated LendAsset lends = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"lends\""
   ];
@@ -40,7 +40,7 @@ message QueryLendRequest {
 }
 
 message QueryLendResponse {
-  Lend_Asset lend = 1
+  LendAsset lend = 1
   [ (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"lend\"" ];
 }
 

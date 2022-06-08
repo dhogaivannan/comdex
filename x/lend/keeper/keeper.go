@@ -59,7 +59,7 @@ func (k Keeper) ModuleBalance(ctx sdk.Context, moduleName string, denom string) 
 	return k.bank.GetBalance(ctx, authtypes.NewModuleAddress(moduleName), denom).Amount
 }
 
-func (k Keeper) LendAsset(ctx sdk.Context, lenderAddr sdk.AccAddress, PairId uint64, loan sdk.Coin) error {
+func (k Keeper) LendAsset(ctx sdk.Context, lenderAddr sdk.AccAddress, PairId uint64, Amount sdk.Coin) error {
 	//if !k.IsWhitelistedAsset(ctx, loan.Denom) {
 	//	return sdkerrors.Wrap(types.ErrInvalidAsset, loan.String())
 	//}
@@ -84,15 +84,21 @@ func (k Keeper) LendAsset(ctx sdk.Context, lenderAddr sdk.AccAddress, PairId uin
 	//TODO:
 	// update reserves
 	// calculate interest rate
-	loanTokens := sdk.NewCoins(loan)
-	if err := k.bank.SendCoinsFromAccountToModule(ctx, lenderAddr, types.ModuleName, loanTokens); err != nil {
-		return err
-	}
+	//loanTokens := sdk.NewCoins(loan)
+	//if err := k.bank.SendCoinsFromAccountToModule(ctx, lenderAddr, types.ModuleName, loanTokens); err != nil {
+	//	return err
+	//}
+	//
+	//currentCollateral := k.GetCollateralAmount(ctx, lenderAddr, loan.Denom)
+	//if err := k.setCollateralAmount(ctx, lenderAddr, currentCollateral.Add(loan)); err != nil {
+	//	return err
+	//}
 
-	currentCollateral := k.GetCollateralAmount(ctx, lenderAddr, loan.Denom)
-	if err := k.setCollateralAmount(ctx, lenderAddr, currentCollateral.Add(loan)); err != nil {
-		return err
-	}
+	//TODO:
+	// create lend position
+	// update that position from next block
+	// set initial interest 0
+	// loan amt, pool, check if bridged asset,
 
 	return nil
 }

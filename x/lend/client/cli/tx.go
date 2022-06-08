@@ -49,7 +49,7 @@ func GetTxCmd() *cobra.Command {
 
 func txLend() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "lend [Pair_ID] [Amount]",
+		Use:   "lend [Asset_Id] [Amount] [Pool_Id]",
 		Short: "lend a whitelisted asset",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -314,7 +314,7 @@ func NewCmdUpdateWhitelistedAssetProposal() *cobra.Command {
 
 			from := clientCtx.GetFromAddress()
 
-			asset := types.Asset{
+			asset := types.LendAsset{
 				Id:                   id,
 				Name:                 name,
 				Denom:                denom,
