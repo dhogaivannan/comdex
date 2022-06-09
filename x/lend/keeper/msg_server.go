@@ -21,25 +21,20 @@ var _ types.MsgServer = msgServer{}
 func (m msgServer) Lend(goCtx context.Context, lend *types.MsgLend) (*types.MsgLendResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	lenderAddr, err := sdk.AccAddressFromBech32(lend.Lender)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := m.keeper.LendAsset(ctx, lenderAddr, lend.PairId, lend.Amount); err != nil {
+	if err := m.keeper.LendAsset(ctx, lend.Lender, lend.AssetId, lend.Amount, lend.PoolId); err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeLoanAsset,
-			sdk.NewAttribute(types.EventAttrLender, lenderAddr.String()),
+			sdk.NewAttribute(types.EventAttrLender, lend.Lender),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, lend.Amount.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.EventAttrModule),
-			sdk.NewAttribute(sdk.AttributeKeySender, lenderAddr.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, lend.Lender),
 		),
 	})
 

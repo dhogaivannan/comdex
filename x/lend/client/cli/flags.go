@@ -61,10 +61,10 @@ func ParseUint64SliceFromString(s string, seperator string) ([]uint64, error) {
 	return parsedInts, nil
 }
 
-func ParseBoolFromString(s string) bool {
+func ParseBoolFromString(s uint64) bool {
 
 	switch s {
-	case "1":
+	case 1:
 		return true
 	default:
 		return false

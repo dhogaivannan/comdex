@@ -25,19 +25,25 @@ const (
 
 	// MemStoreKey defines the in-memory store key
 	MemStoreKey = "mem_lend"
+
+	CTokenPrefix = "c/"
 )
 
 var (
-	KeyPrefixCollateralAmount         = []byte{0x04}
-	KeyPrefixReserveAmount            = []byte{0x05}
-	WhitelistedAssetIDKey             = []byte{0x01}
-	WhitelistedPairIDKey              = []byte{0x03}
-	WhitelistedAssetKeyPrefix         = []byte{0x1}
+	WhitelistedAssetKeyPrefix = []byte{0x02}
+	KeyPrefixCollateralAmount = []byte{0x04}
+	KeyPrefixReserveAmount    = []byte{0x05}
+
+	KeyPrefixCtokenSupply = []byte{0x12}
+	PoolKeyPrefix         = []byte{0x13}
+	PairKeyPrefix         = []byte{0x14}
+	LendUserPrefix        = []byte{0x15}
+	LendHistoryIdPrefix   = []byte{0x16}
+	PoolIdPrefix          = []byte{0x17}
+	LendPairIDKey         = []byte{0x18}
+	LendPairKeyPrefix     = []byte{0x19}
+
 	WhitelistedAssetForDenomKeyPrefix = []byte{0x21}
-	WhitelistedRecordKey              = []byte{0x22}
-	PairIDKey                         = []byte{0x03}
-	PairKeyPrefix                     = []byte{0x14}
-	LendHistoryPrefix                 = []byte{0x15}
 )
 
 func AssetKey(id uint64) []byte {
@@ -82,6 +88,22 @@ func PairKey(id uint64) []byte {
 	return append(PairKeyPrefix, sdk.Uint64ToBigEndian(id)...)
 }
 
-func LendUserHistoryKey(id uint64) []byte {
-	return append(LendHistoryPrefix, sdk.Uint64ToBigEndian(id)...)
+func LendUserKey(id uint64) []byte {
+	return append(LendUserPrefix, sdk.Uint64ToBigEndian(id)...)
+}
+
+func PoolKey(id uint64) []byte {
+	return append(PoolKeyPrefix, sdk.Uint64ToBigEndian(id)...)
+}
+
+func CreateCTokenSupplyKey(uTokenDenom string) []byte {
+	// supplyprefix | denom | 0x00
+	var key []byte
+	key = append(key, KeyPrefixCtokenSupply...)
+	key = append(key, []byte(uTokenDenom)...)
+	return append(key, 0) // append 0 for null-termination
+}
+
+func LendPairKey(id uint64) []byte {
+	return append(LendPairKeyPrefix, sdk.Uint64ToBigEndian(id)...)
 }

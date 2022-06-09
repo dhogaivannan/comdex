@@ -101,6 +101,7 @@ import (
 	collectorkeeper "github.com/comdex-official/comdex/x/collector/keeper"
 	collectortypes "github.com/comdex-official/comdex/x/collector/types"
 	"github.com/comdex-official/comdex/x/lend"
+	lendclient "github.com/comdex-official/comdex/x/lend/client"
 	lendkeeper "github.com/comdex-official/comdex/x/lend/keeper"
 	lendtypes "github.com/comdex-official/comdex/x/lend/types"
 	"github.com/comdex-official/comdex/x/locker"
@@ -173,6 +174,9 @@ var (
 			append(
 				assetclient.AddAssetsHandler,
 				bandoraclemoduleclient.AddFetchPriceHandler,
+				lendclient.AddLendPairsHandler,
+				lendclient.UpdateLendPairsHandler,
+				lendclient.AddPoolHandler,
 				collectorclient.AddLookupTableParamsHandlers,
 				collectorclient.AddAuctionControlParamsHandler,
 				paramsclient.ProposalHandler,
@@ -488,6 +492,7 @@ func New(
 		app.GetSubspace(lendtypes.ModuleName),
 		app.bankKeeper,
 		app.accountKeeper,
+		&app.assetKeeper,
 	)
 
 	app.vaultKeeper = vaultkeeper.NewKeeper(
@@ -667,6 +672,7 @@ func New(
 		AddRoute(assettypes.RouterKey, asset.NewUpdateAssetProposalHandler(app.assetKeeper)).
 		AddRoute(collectortypes.RouterKey, collector.NewLookupTableParamsHandlers(app.collectorKeeper)).
 		AddRoute(bandoraclemoduletypes.RouterKey, bandoraclemodule.NewFetchPriceHandler(app.BandoracleKeeper)).
+		AddRoute(lendtypes.RouterKey, lend.NewLendHandler(app.lendKeeper)).
 		AddRoute(ibchost.RouterKey, ibcclient.NewClientProposalHandler(app.ibcKeeper.ClientKeeper))
 
 	app.govKeeper = govkeeper.NewKeeper(

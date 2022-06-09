@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	assettypes "github.com/comdex-official/comdex/x/asset/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -46,4 +47,8 @@ func (k *Keeper) GetModuleAddress(name string) sdk.AccAddress {
 
 func (k *Keeper) GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins {
 	return k.bank.GetAllBalances(ctx, addr)
+}
+
+func (k *Keeper) GetAsset(ctx sdk.Context, id uint64) (assettypes.Asset, bool) {
+	return k.asset.GetAsset(ctx, id)
 }
