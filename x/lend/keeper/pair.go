@@ -21,7 +21,7 @@ func (k *Keeper) AddLendPairsRecords(ctx sdk.Context, records ...types.Extended_
 				Id:                     id + 1,
 				AssetIn:                msg.AssetIn,
 				AssetOut:               msg.AssetOut,
-				ModuleAcc:              msg.ModuleAcc,
+				IsInterPool:            msg.IsInterPool,
 				BaseBorrowRateAssetIn:  msg.BaseBorrowRateAssetIn,
 				BaseLendRateAssetIn:    msg.BaseLendRateAssetIn,
 				BaseBorrowRateAssetOut: msg.BaseBorrowRateAssetOut,
@@ -51,6 +51,22 @@ func (k Keeper) AddPoolRecords(ctx sdk.Context, pool types.Pool) error {
 	}
 	k.SetPool(ctx, newPool)
 	k.SetPoolId(ctx, newPool.PoolId)
+	return nil
+}
+
+func (k Keeper) AddAssetToPair(ctx sdk.Context, assetToPair types.AssetToPairMapping) error {
+	_, found := k.GetAsset(ctx, assetToPair.AssetId)
+	if !found {
+		return types.ErrorAssetDoesNotExist
+	}
+	for _, v := range assetToPair.PairId {
+		_, found := k.GetLendPair(ctx, v)
+		if !found {
+			return types.ErrorPairDoesNotExist
+		}
+	}
+	k.SetAssetToPair(ctx, assetToPair)
+
 	return nil
 }
 

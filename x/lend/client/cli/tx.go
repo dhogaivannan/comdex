@@ -197,7 +197,7 @@ func txFundModuleAccounts() *cobra.Command {
 
 func CmdAddWNewLendPairsProposal() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "add-lend-pairs [asset_in] [asset_out] [Module-Account] [Base_Borrow_Rate_Asset1] [Base_Borrow_Rate_Asset2] [Base_Lend_Rate_Asset1] [Base_Lend_Rate_Asset2]",
+		Use:   "add-lend-pairs [asset_in] [asset_out] [is_inter_pool] [Base_Borrow_Rate_Asset1] [Base_Borrow_Rate_Asset2] [Base_Lend_Rate_Asset1] [Base_Lend_Rate_Asset2]",
 		Short: "Add lend asset pairs",
 		Args:  cobra.ExactArgs(7),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -216,7 +216,7 @@ func CmdAddWNewLendPairsProposal() *cobra.Command {
 				return err
 			}
 
-			moduleAccnt, err := ParseStringFromString(args[2], ",")
+			is_inter_pool, err := ParseUint64SliceFromString(args[2], ",")
 			if err != nil {
 				return err
 			}
@@ -245,10 +245,11 @@ func CmdAddWNewLendPairsProposal() *cobra.Command {
 				newbaseborrowrateasset2, _ := sdk.NewDecFromStr(baseborrowrateasset2[i])
 				newbaselendrateasset1, _ := sdk.NewDecFromStr(baselendrateasset1[i])
 				newbaselendrateasset2, _ := sdk.NewDecFromStr(baselendrateasset2[i])
+				interPool := ParseBoolFromString(is_inter_pool[i])
 				pairs = append(pairs, types.Extended_Pair{
 					AssetIn:                assetIn[i],
 					AssetOut:               assetOut[i],
-					ModuleAcc:              moduleAccnt[i],
+					IsInterPool:            interPool,
 					BaseBorrowRateAssetIn:  newbaseborrowrateasset1,
 					BaseBorrowRateAssetOut: newbaseborrowrateasset2,
 					BaseLendRateAssetIn:    newbaselendrateasset1,
@@ -472,6 +473,81 @@ func CmdAddPoolProposal() *cobra.Command {
 			}
 
 			content := types.NewAddPoolProposal(title, description, pool)
+
+			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			if err != nil {
+				return err
+			}
+
+			if err = msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().String(cli.FlagTitle, "", "title of proposal")
+	cmd.Flags().String(cli.FlagDescription, "", "description of proposal")
+	cmd.Flags().String(cli.FlagDeposit, "", "deposit of proposal")
+	_ = cmd.MarkFlagRequired(cli.FlagTitle)
+	_ = cmd.MarkFlagRequired(cli.FlagDescription)
+
+	return cmd
+}
+
+func CmdAddAssetToPairProposal() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "add-asset-to-pair-mapping [asset_id] [pair_id] ",
+		Short: "Add asset to pair mapping ",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			asset_id, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			pair_id, _ := ParseUint64SliceFromString(args[1], ",")
+			if err != nil {
+				return err
+			}
+			var pairId []uint64
+			for i := range pair_id {
+
+				pairId = append(pairId, pair_id[i])
+			}
+			assetToPairMapping := types.AssetToPairMapping{
+				AssetId: asset_id,
+				PairId:  pairId,
+			}
+
+			title, err := cmd.Flags().GetString(cli.FlagTitle)
+			if err != nil {
+				return err
+			}
+
+			description, err := cmd.Flags().GetString(cli.FlagDescription)
+			if err != nil {
+				return err
+			}
+
+			from := clientCtx.GetFromAddress()
+
+			depositStr, err := cmd.Flags().GetString(cli.FlagDeposit)
+			if err != nil {
+				return err
+			}
+			deposit, err := sdk.ParseCoinsNormalized(depositStr)
+			if err != nil {
+				return err
+			}
+
+			content := types.NewAddAssetToPairProposal(title, description, assetToPairMapping)
 
 			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {

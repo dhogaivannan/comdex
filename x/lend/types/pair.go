@@ -15,6 +15,9 @@ func (m *Extended_Pair) Validate() error {
 }
 
 func (m *Pool) Validate() error {
+	return nil
+}
 
+func (m *AssetToPairMapping) Validate() error {
 	return nil
 }

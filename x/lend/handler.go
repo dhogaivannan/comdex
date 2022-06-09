@@ -56,6 +56,8 @@ func NewLendHandler(k keeper.Keeper) govtypes.Handler {
 			return handleUpdateWhitelistedPairProposal(ctx, k, c)
 		case *types.AddPoolsProposal:
 			return handleAddPoolProposal(ctx, k, c)
+		case *types.AddAssetToPairProposal:
+			return handleAddAssetToPairProposal(ctx, k, c)
 
 		default:
 			return errors.Wrapf(types.ErrorUnknownProposalType, "%T", c)
@@ -73,4 +75,8 @@ func handleUpdateWhitelistedPairProposal(ctx sdk.Context, k keeper.Keeper, p *ty
 
 func handleAddPoolProposal(ctx sdk.Context, k keeper.Keeper, p *types.AddPoolsProposal) error {
 	return k.HandleAddPoolRecords(ctx, p)
+}
+
+func handleAddAssetToPairProposal(ctx sdk.Context, k keeper.Keeper, p *types.AddAssetToPairProposal) error {
+	return k.HandleAddAssetToPairRecords(ctx, p)
 }

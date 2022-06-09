@@ -8,6 +8,7 @@ var (
 	ProposalAddLendPairs    = "ProposalAddLendPairs"
 	ProposalUpdateLenddPair = "ProposalUpdateLenddPair"
 	ProposalAddPool         = "ProposalAddPool"
+	ProposalAddAssetToPair  = "ProposalAddAssetToPair"
 )
 
 func init() {
@@ -21,11 +22,16 @@ func init() {
 	govtypes.RegisterProposalType(ProposalAddPool)
 	govtypes.RegisterProposalTypeCodec(&AddPoolsProposal{}, "comdex/AddPoolsProposal")
 
+	govtypes.RegisterProposalType(ProposalAddAssetToPair)
+	govtypes.RegisterProposalTypeCodec(&AddAssetToPairProposal{}, "comdex/AddAssetToPairProposal")
+
 }
 
 var (
 	_ govtypes.Content = &LendPairsProposal{}
 	_ govtypes.Content = &UpdatePairProposal{}
+	_ govtypes.Content = &AddPoolsProposal{}
+	_ govtypes.Content = &AddAssetToPairProposal{}
 )
 
 func NewAddLendPairsProposal(title, description string, pairs []Extended_Pair) govtypes.Content {
@@ -109,6 +115,36 @@ func (p *AddPoolsProposal) ValidateBasic() error {
 	}
 
 	pool := p.Pool
+	if err := pool.Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func NewAddAssetToPairProposal(title, description string, AssetToPairMapping AssetToPairMapping) govtypes.Content {
+	return &AddAssetToPairProposal{
+		Title:              title,
+		Description:        description,
+		AssetToPairMapping: AssetToPairMapping,
+	}
+}
+
+func (p *AddAssetToPairProposal) ProposalRoute() string {
+	return RouterKey
+}
+
+func (p *AddAssetToPairProposal) ProposalType() string {
+	return ProposalAddAssetToPair
+}
+
+func (p *AddAssetToPairProposal) ValidateBasic() error {
+	err := govtypes.ValidateAbstract(p)
+	if err != nil {
+		return err
+	}
+
+	pool := p.AssetToPairMapping
 	if err := pool.Validate(); err != nil {
 		return err
 	}

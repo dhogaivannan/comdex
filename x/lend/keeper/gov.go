@@ -16,3 +16,7 @@ func (k Keeper) HandleUpdateWhitelistedPairRecords(ctx sdk.Context, p *types.Upd
 func (k Keeper) HandleAddPoolRecords(ctx sdk.Context, p *types.AddPoolsProposal) error {
 	return k.AddPoolRecords(ctx, p.Pool)
 }
+
+func (k Keeper) HandleAddAssetToPairRecords(ctx sdk.Context, p *types.AddAssetToPairProposal) error {
+	return k.AddAssetToPair(ctx, p.AssetToPairMapping)
+}

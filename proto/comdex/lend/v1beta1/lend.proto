@@ -128,8 +128,9 @@ message Extended_Pair {
   uint64 id = 1;
   uint64 asset_in = 2 [(gogoproto.moretags) = "yaml:\"asset_in\""];
   uint64 asset_out = 3 [(gogoproto.moretags) = "yaml:\"asset_out\""];
-  string module_acc = 4 [(gogoproto.moretags) = "yaml:\"module_acc\""];
-
+  bool is_inter_pool = 4 [
+    (gogoproto.moretags) = "yaml:\"is_inter_pool\""
+  ];
   string liquidation_ratio = 5 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable)   = false,
@@ -163,5 +164,16 @@ message Extended_Pair {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"base_lend_rate_asset_2\""
+  ];
+}
+
+message AssetToPairMapping{
+  uint64 asset_id = 1 [
+    (gogoproto.customname) = "AssetId",
+    (gogoproto.moretags) = "yaml:\"asset_id\""
+  ];
+  repeated uint64 pair_id = 2 [
+    (gogoproto.customname) = "PairId",
+    (gogoproto.moretags) = "yaml:\"pair_id\""
   ];
 }
