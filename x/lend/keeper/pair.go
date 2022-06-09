@@ -36,6 +36,12 @@ func (k *Keeper) AddLendPairsRecords(ctx sdk.Context, records ...types.Extended_
 }
 
 func (k Keeper) AddPoolRecords(ctx sdk.Context, pool types.Pool) error {
+	for _, v := range pool.AssetData {
+		_, found := k.GetAsset(ctx, v.AssetId)
+		if !found {
+			return types.ErrorAssetDoesNotExist
+		}
+	}
 
 	poolId := k.GetPoolId(ctx)
 	newPool := types.Pool{
