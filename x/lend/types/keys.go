@@ -43,6 +43,7 @@ var (
 	LendPairIDKey         = []byte{0x18}
 	LendPairKeyPrefix     = []byte{0x19}
 
+	AssetToPairMappingKeyPrefix       = []byte{0x20}
 	WhitelistedAssetForDenomKeyPrefix = []byte{0x21}
 )
 
@@ -106,4 +107,8 @@ func CreateCTokenSupplyKey(uTokenDenom string) []byte {
 
 func LendPairKey(id uint64) []byte {
 	return append(LendPairKeyPrefix, sdk.Uint64ToBigEndian(id)...)
+}
+
+func AssetToPairMappingKey(id uint64) []byte {
+	return append(AssetToPairMappingKeyPrefix, sdk.Uint64ToBigEndian(id)...)
 }

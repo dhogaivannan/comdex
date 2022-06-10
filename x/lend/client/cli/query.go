@@ -31,6 +31,12 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(
 		queryLend(),
 		queryLends(),
+		queryPair(),
+		queryPairs(),
+		queryPool(),
+		queryPools(),
+		queryAssetToPairMapping(),
+		queryAssetToPairMappings(),
 	)
 
 	return cmd
@@ -93,6 +99,228 @@ func queryLends() *cobra.Command {
 			res, err := queryClient.QueryLends(
 				context.Background(),
 				&types.QueryLendsRequest{
+					Pagination: pagination,
+				},
+			)
+			if err != nil {
+				return err
+			}
+
+			return ctx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	flags.AddPaginationFlagsToCmd(cmd, "lends")
+
+	return cmd
+}
+
+func queryPair() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pair [id]",
+		Short: "Query a pair",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			id, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(ctx)
+
+			res, err := queryClient.QueryPair(
+				context.Background(),
+				&types.QueryPairRequest{
+					Id: id,
+				},
+			)
+			if err != nil {
+				return err
+			}
+
+			return ctx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func queryPairs() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pairs",
+		Short: "Query pairs",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			pagination, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(ctx)
+
+			res, err := queryClient.QueryPairs(
+				context.Background(),
+				&types.QueryPairsRequest{
+					Pagination: pagination,
+				},
+			)
+			if err != nil {
+				return err
+			}
+
+			return ctx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	flags.AddPaginationFlagsToCmd(cmd, "pairs")
+
+	return cmd
+}
+
+func queryPool() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pool [id]",
+		Short: "Query a pool",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			id, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(ctx)
+
+			res, err := queryClient.QueryPool(
+				context.Background(),
+				&types.QueryPoolRequest{
+					Id: id,
+				},
+			)
+			if err != nil {
+				return err
+			}
+
+			return ctx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func queryPools() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pools",
+		Short: "Query pools",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			pagination, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(ctx)
+
+			res, err := queryClient.QueryPools(
+				context.Background(),
+				&types.QueryPoolsRequest{
+					Pagination: pagination,
+				},
+			)
+			if err != nil {
+				return err
+			}
+
+			return ctx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	flags.AddPaginationFlagsToCmd(cmd, "pools")
+
+	return cmd
+}
+
+func queryAssetToPairMapping() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "asset-pair-mapping [id]",
+		Short: "Query Asset To Pair Mapping",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			id, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(ctx)
+
+			res, err := queryClient.QueryAssetToPairMapping(
+				context.Background(),
+				&types.QueryAssetToPairMappingRequest{
+					Id: id,
+				},
+			)
+			if err != nil {
+				return err
+			}
+
+			return ctx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func queryAssetToPairMappings() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "asset-pair-mappings",
+		Short: "Query Asset To Pair Mappings",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			pagination, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(ctx)
+
+			res, err := queryClient.QueryAssetToPairMappings(
+				context.Background(),
+				&types.QueryAssetToPairMappingsRequest{
 					Pagination: pagination,
 				},
 			)

@@ -160,7 +160,7 @@ func (k *Keeper) GetPool(ctx sdk.Context, id uint64) (pool types.Pool, found boo
 func (k *Keeper) SetAssetToPair(ctx sdk.Context, assetToPair types.AssetToPairMapping) {
 	var (
 		store = k.Store(ctx)
-		key   = types.PoolKey(assetToPair.AssetId)
+		key   = types.AssetToPairMappingKey(assetToPair.AssetId)
 		value = k.cdc.MustMarshal(&assetToPair)
 	)
 
@@ -170,7 +170,7 @@ func (k *Keeper) SetAssetToPair(ctx sdk.Context, assetToPair types.AssetToPairMa
 func (k *Keeper) GetAssetToPair(ctx sdk.Context, id uint64) (assetToPair types.AssetToPairMapping, found bool) {
 	var (
 		store = k.Store(ctx)
-		key   = types.PoolKey(id)
+		key   = types.AssetToPairMappingKey(id)
 		value = store.Get(key)
 	)
 
