@@ -35,4 +35,6 @@ var (
 	ErrorUnauthorized          = sdkerrors.Register(ModuleName, 1124, "unauthorized")
 	ErrBadOfferCoinAmount      = sdkerrors.Register(ModuleName, 1125, "invalid offer coin amount")
 	ErrorDuplicateLendPair     = sdkerrors.Register(ModuleName, 1126, "Dublicate lend Pair")
+	ErrorDuplicateLend         = sdkerrors.Register(ModuleName, 1127, "Dublicate lend Position")
+	ErrorLendOwnerNotFound     = sdkerrors.Register(ModuleName, 1128, "Lend Owner not found")
 )

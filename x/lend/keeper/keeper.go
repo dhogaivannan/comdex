@@ -68,8 +68,13 @@ func (k Keeper) LendAsset(ctx sdk.Context, lenderAddr string, AssetId uint64, Am
 		return sdkerrors.Wrap(types.ErrBadOfferCoinAmount, Amount.Denom)
 	}
 
-	loanTokens := sdk.NewCoins(Amount)
 	addr, _ := sdk.AccAddressFromBech32(lenderAddr)
+
+	if k.HasLendForAddressByAsset(ctx, addr, AssetId) {
+		return types.ErrorDuplicateLend
+	}
+
+	loanTokens := sdk.NewCoins(Amount)
 
 	cToken, err := k.ExchangeToken(ctx, Amount, asset.Name)
 	if err != nil {
@@ -116,6 +121,11 @@ func (k Keeper) LendAsset(ctx sdk.Context, lenderAddr string, AssetId uint64, Am
 
 	k.SetUserLendIDHistory(ctx, lendPos.ID)
 	k.SetLend(ctx, lendPos)
+	k.SetLendForAddressByAsset(ctx, addr, lendPos.AssetId, lendPos.ID)
+	err = k.UpdateUserLendIdMapping(ctx, lenderAddr, lendPos.ID, true)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

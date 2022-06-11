@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 )
@@ -45,6 +46,8 @@ var (
 
 	AssetToPairMappingKeyPrefix       = []byte{0x20}
 	WhitelistedAssetForDenomKeyPrefix = []byte{0x21}
+	LendForAddressByAssetKeyPrefix    = []byte{0x22}
+	UserLendsForAddressKeyPrefix      = []byte{0x23}
 )
 
 func AssetKey(id uint64) []byte {
@@ -111,4 +114,18 @@ func LendPairKey(id uint64) []byte {
 
 func AssetToPairMappingKey(id uint64) []byte {
 	return append(AssetToPairMappingKeyPrefix, sdk.Uint64ToBigEndian(id)...)
+}
+
+func LendForAddressByAsset(address sdk.AccAddress, pairID uint64) []byte {
+	v := append(LendForAddressByAssetKeyPrefix, address.Bytes()...)
+	if len(v) != 1+20 {
+		panic(fmt.Errorf("invalid key length %d; expected %d", len(v), 1+20))
+	}
+
+	return append(v, sdk.Uint64ToBigEndian(pairID)...)
+}
+
+func UserLendsForAddressKey(address string) []byte {
+
+	return append(UserLendsForAddressKeyPrefix, address...)
 }

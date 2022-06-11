@@ -177,3 +177,11 @@ message AssetToPairMapping{
     (gogoproto.moretags) = "yaml:\"pair_id\""
   ];
 }
+
+message UserLendIdMapping{
+  string owner = 1 [(gogoproto.moretags) = "yaml:\"owner\""];
+  repeated uint64 lend_ids = 2 [
+    (gogoproto.customname) = "LendIds",
+    (gogoproto.moretags) = "yaml:\"lend_ids\""
+  ];
+}
