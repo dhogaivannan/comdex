@@ -37,4 +37,7 @@ var (
 	ErrorDuplicateLendPair     = sdkerrors.Register(ModuleName, 1126, "Dublicate lend Pair")
 	ErrorDuplicateLend         = sdkerrors.Register(ModuleName, 1127, "Dublicate lend Position")
 	ErrorLendOwnerNotFound     = sdkerrors.Register(ModuleName, 1128, "Lend Owner not found")
+	ErrLendNotFound            = sdkerrors.Register(ModuleName, 1129, "Lend Position not found")
+	ErrWithdrawlAmountExceeds  = sdkerrors.Register(ModuleName, 1130, "Withdrawl Amount Exceeds")
+	ErrLendAccessUnauthorised  = sdkerrors.Register(ModuleName, 1131, "Unauthorized user for the tx")
 )

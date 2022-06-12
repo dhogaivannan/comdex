@@ -39,6 +39,8 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(
 		txLend(),
 		txWithdraw(), //withdraw collateral partially or fully
+		txDeposit(),
+		txCloseLend(),
 		txBorrowAsset(),
 		txRepayAsset(), //including functionality of both repaying and closing position
 		txFundModuleAccounts(),
@@ -86,8 +88,72 @@ func txLend() *cobra.Command {
 
 func txWithdraw() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "withdraw [Amount]",
+		Use:   "withdraw [lendId] [Amount]",
 		Short: "withdraw lent asset",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			lendId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			asset, err := sdk.ParseCoinNormalized(args[1])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgWithdraw(ctx.GetFromAddress(), lendId, asset)
+
+			return tx.GenerateOrBroadcastTxCLI(ctx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+
+}
+
+func txDeposit() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "deposit [lendId] [Amount]",
+		Short: "deposit into a lent position",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			lendId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			asset, err := sdk.ParseCoinNormalized(args[1])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgDeposit(ctx.GetFromAddress(), lendId, asset)
+
+			return tx.GenerateOrBroadcastTxCLI(ctx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+
+}
+
+func txCloseLend() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "close-lend [lendId]",
+		Short: "close a lent position",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, err := client.GetClientTxContext(cmd)
@@ -95,12 +161,12 @@ func txWithdraw() *cobra.Command {
 				return err
 			}
 
-			asset, err := sdk.ParseCoinNormalized(args[0])
+			lendId, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgWithdraw(ctx.GetFromAddress(), asset)
+			msg := types.NewMsgCloseLend(ctx.GetFromAddress(), lendId)
 
 			return tx.GenerateOrBroadcastTxCLI(ctx, cmd.Flags(), msg)
 		},

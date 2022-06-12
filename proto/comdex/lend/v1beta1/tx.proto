@@ -14,6 +14,10 @@ service Msg {
   // the ModuleAccount.
   rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
 
+  rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
+
+  rpc CloseLend(MsgCloseLend) returns (MsgCloseLendResponse);
+
   // BorrowAsset defines a method for borrowing coins from the ModuleAccount.
   rpc Borrow(MsgBorrow) returns (MsgBorrowResponse);
 
@@ -33,7 +37,19 @@ message MsgLend {
 
 message MsgWithdraw {
   string                   lender = 1;
-  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+  uint64                   lend_id = 2;
+  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
+}
+
+message MsgDeposit {
+  string                   lender = 1;
+  uint64                   lend_id = 2;
+  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
+}
+
+message MsgCloseLend {
+  string                   lender = 1;
+  uint64                   lend_id = 2;
 }
 
 message MsgBorrow {
@@ -55,6 +71,10 @@ message MsgFundModuleAccounts {
 message MsgLendResponse {}
 
 message MsgWithdrawResponse {}
+
+message MsgDepositResponse {}
+
+message MsgCloseLendResponse {}
 
 message MsgBorrowResponse {}
 

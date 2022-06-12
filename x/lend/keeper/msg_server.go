@@ -49,7 +49,9 @@ func (m msgServer) Withdraw(goCtx context.Context, withdraw *types.MsgWithdraw) 
 		return nil, err
 	}
 
-	if err := m.keeper.WithdrawAsset(ctx, lenderAddr, withdraw.Amount); err != nil {
+	lendId := withdraw.LendId
+
+	if err := m.keeper.WithdrawAsset(ctx, withdraw.Lender, lendId, withdraw.Amount); err != nil {
 		return nil, err
 	}
 
@@ -67,6 +69,65 @@ func (m msgServer) Withdraw(goCtx context.Context, withdraw *types.MsgWithdraw) 
 	})
 
 	return &types.MsgWithdrawResponse{}, nil
+}
+
+func (m msgServer) Deposit(goCtx context.Context, deposit *types.MsgDeposit) (*types.MsgDepositResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	lenderAddr, err := sdk.AccAddressFromBech32(deposit.Lender)
+	if err != nil {
+		return nil, err
+	}
+
+	lendId := deposit.LendId
+
+	if err := m.keeper.DepositAsset(ctx, deposit.Lender, lendId, deposit.Amount); err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeWithdrawLoanedAsset,
+			sdk.NewAttribute(types.EventAttrLender, lenderAddr.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, deposit.Amount.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.EventAttrModule),
+			sdk.NewAttribute(sdk.AttributeKeySender, lenderAddr.String()),
+		),
+	})
+
+	return &types.MsgDepositResponse{}, nil
+}
+
+func (m msgServer) CloseLend(goCtx context.Context, lend *types.MsgCloseLend) (*types.MsgCloseLendResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	lenderAddr, err := sdk.AccAddressFromBech32(lend.Lender)
+	if err != nil {
+		return nil, err
+	}
+
+	lendId := lend.LendId
+
+	if err := m.keeper.CloseLend(ctx, lend.Lender, lendId); err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeWithdrawLoanedAsset,
+			sdk.NewAttribute(types.EventAttrLender, lenderAddr.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.EventAttrModule),
+			sdk.NewAttribute(sdk.AttributeKeySender, lenderAddr.String()),
+		),
+	})
+
+	return &types.MsgCloseLendResponse{}, nil
 }
 
 func (m msgServer) Borrow(goCtx context.Context, borrow *types.MsgBorrow) (*types.MsgBorrowResponse, error) {

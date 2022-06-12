@@ -28,6 +28,14 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			res, err := server.Withdraw(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
+		case *types.MsgDeposit:
+			res, err := server.Deposit(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+
+		case *types.MsgCloseLend:
+			res, err := server.CloseLend(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+
 		case *types.MsgBorrow:
 			res, err := server.Borrow(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)

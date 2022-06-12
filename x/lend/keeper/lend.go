@@ -102,6 +102,15 @@ func (k *Keeper) GetLend(ctx sdk.Context, id uint64) (lend types.LendAsset, foun
 	return lend, true
 }
 
+func (k *Keeper) DeleteLend(ctx sdk.Context, id uint64) {
+	var (
+		store = k.Store(ctx)
+		key   = types.LendUserKey(id)
+	)
+
+	store.Delete(key)
+}
+
 func (k *Keeper) SetPoolId(ctx sdk.Context, id uint64) {
 	var (
 		store = k.Store(ctx)

@@ -13,6 +13,8 @@ import (
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgLend{}, "comdex/lend/lend", nil)
 	cdc.RegisterConcrete(&MsgWithdraw{}, "comdex/lend/withdraw", nil)
+	cdc.RegisterConcrete(&MsgDeposit{}, "comdex/lend/deposit", nil)
+	cdc.RegisterConcrete(&MsgCloseLend{}, "comdex/lend/close-lend", nil)
 	cdc.RegisterConcrete(&MsgBorrow{}, "comdex/lend/borrow", nil)
 	cdc.RegisterConcrete(&MsgRepay{}, "comdex/lend/repay", nil)
 	cdc.RegisterConcrete(&MsgFundModuleAccounts{}, "comdex/lend/fund-module", nil)
@@ -35,6 +37,8 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		(*sdk.Msg)(nil),
 		&MsgLend{},
 		&MsgWithdraw{},
+		&MsgDeposit{},
+		&MsgCloseLend{},
 		&MsgBorrow{},
 		&MsgRepay{},
 		&MsgFundModuleAccounts{},

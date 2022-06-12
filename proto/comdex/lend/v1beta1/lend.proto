@@ -35,10 +35,16 @@ message LendAsset {
     (gogoproto.moretags) = "yaml:\"lending_time\""
   ];
 
-  cosmos.base.v1beta1.Coin reward_Accumulated = 7 [
+  string updated_amount_in = 7 [
     (gogoproto.nullable) = false,
-    (gogoproto.moretags) = "yaml:\"reward\"",
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Coin"
+    (gogoproto.moretags) = "yaml:\"updated_amount_in\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+
+  string reward_Accumulated = 8 [
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"reward_accumulated\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
 
 }

@@ -116,7 +116,8 @@ func (k Keeper) LendAsset(ctx sdk.Context, lenderAddr string, AssetId uint64, Am
 		Owner:              lenderAddr,
 		AmountIn:           Amount,
 		LendingTime:        ctx.BlockTime(),
-		Reward_Accumulated: sdk.NewCoin(Amount.Denom, sdk.NewInt(0)),
+		UpdatedAmountIn:    Amount.Amount,
+		Reward_Accumulated: sdk.ZeroInt(),
 	}
 
 	k.SetUserLendIDHistory(ctx, lendPos.ID)
@@ -130,30 +131,196 @@ func (k Keeper) LendAsset(ctx sdk.Context, lenderAddr string, AssetId uint64, Am
 	return nil
 }
 
-func (k Keeper) WithdrawAsset(ctx sdk.Context, lenderAddr sdk.AccAddress, withdrawal sdk.Coin) error {
+func (k Keeper) WithdrawAsset(ctx sdk.Context, addr string, lendId uint64, withdrawal sdk.Coin) error {
 
+	//TODO:
+	// check if lend position exists
+	// check borrow for that lend position
+	// get current CR
+	// calculate available to withdraw
+	// take balance in c/Token and return Token
+	// if borrow available update CR
 	// Ensure module account has sufficient unreserved tokens to withdraw
+
+	lenderAddr, err := sdk.AccAddressFromBech32(addr)
+	if err != nil {
+		return err
+	}
+
+	lendPos, found := k.GetLend(ctx, lendId)
+	if !found {
+		return types.ErrLendNotFound
+	}
+	asset, _ := k.GetAsset(ctx, lendPos.AssetId)
+	pool, _ := k.GetPool(ctx, lendPos.PoolId)
+
+	if lendPos.Owner != addr {
+		return types.ErrLendAccessUnauthorised
+	}
+
+	if withdrawal.Denom != asset.Denom {
+		return sdkerrors.Wrap(types.ErrBadOfferCoinAmount, withdrawal.Denom)
+	}
+
 	reservedAmount := k.GetReserveFunds(ctx, withdrawal.Denom)
-	currentCollateral := k.GetCollateralAmount(ctx, lenderAddr, withdrawal.Denom)
-	availableAmount := k.ModuleBalance(ctx, types.ModuleName, withdrawal.Denom)
+	availableAmount := k.ModuleBalance(ctx, pool.ModuleName, withdrawal.Denom)
+
+	if withdrawal.Amount.GT(lendPos.AmountIn.Amount) {
+		return sdkerrors.Wrap(types.ErrWithdrawlAmountExceeds, withdrawal.String())
+	}
 
 	if withdrawal.Amount.GT(availableAmount.Sub(reservedAmount)) {
 		return sdkerrors.Wrap(types.ErrLendingPoolInsufficient, withdrawal.String())
 	}
 
-	if withdrawal.Amount.GT(currentCollateral.Amount) {
-		return sdkerrors.Wrap(types.ErrInsufficientBalance, withdrawal.String())
-	}
-	// update lenders share after withdraw
-	if err := k.setCollateralAmount(ctx, lenderAddr, currentCollateral.Sub(withdrawal)); err != nil {
-		return err
-	}
-	// send the base assets to lender
 	tokens := sdk.NewCoins(withdrawal)
-	if err := k.bank.SendCoinsFromModuleToAccount(ctx, types.ModuleName, lenderAddr, tokens); err != nil {
+
+	cToken, err := k.ExchangeToken(ctx, withdrawal, asset.Name)
+	if err != nil {
 		return err
 	}
 
+	if withdrawal.Amount.LT(lendPos.UpdatedAmountIn) {
+
+		//TODO:
+		// update lend & Updated amount in position
+		// create a lend to borrow mapping
+		// borrow calculations for CR
+
+		if err := k.SendCoinFromAccountToModule(ctx, lenderAddr, pool.ModuleName, cToken); err != nil {
+			return err
+		}
+
+		//burn c/Token
+
+		if err := k.bank.SendCoinsFromModuleToAccount(ctx, pool.ModuleName, lenderAddr, tokens); err != nil {
+			return err
+		}
+		fmt.Println("lendPos......before", lendPos)
+
+		lendPos.AmountIn = lendPos.AmountIn.Sub(withdrawal)
+		lendPos.UpdatedAmountIn = lendPos.UpdatedAmountIn.Sub(withdrawal.Amount)
+		fmt.Println("lendPos......1", lendPos)
+		k.SetLend(ctx, lendPos)
+
+	} else {
+		return nil
+	}
+
+	return nil
+}
+
+func (k Keeper) DepositAsset(ctx sdk.Context, addr string, lendId uint64, deposit sdk.Coin) error {
+
+	//TODO:
+	// check lend position
+	// mint additional c/Token
+	// send c/token to user
+	// update LendPos
+
+	lenderAddr, err := sdk.AccAddressFromBech32(addr)
+	if err != nil {
+		return err
+	}
+
+	lendPos, found := k.GetLend(ctx, lendId)
+	if !found {
+		return types.ErrLendNotFound
+	}
+
+	asset, _ := k.GetAsset(ctx, lendPos.AssetId)
+	pool, _ := k.GetPool(ctx, lendPos.PoolId)
+
+	if deposit.Denom != asset.Denom {
+		return sdkerrors.Wrap(types.ErrBadOfferCoinAmount, deposit.Denom)
+	}
+
+	cToken, err := k.ExchangeToken(ctx, deposit, asset.Name)
+	if err != nil {
+		return err
+	}
+	cTokens := sdk.NewCoins(cToken)
+
+	if err = k.bank.MintCoins(ctx, pool.ModuleName, cTokens); err != nil {
+		return err
+	}
+
+	if err = k.setCTokenSupply(ctx, k.GetCTokenSupply(ctx, cToken.Denom).Add(cToken)); err != nil {
+		return err
+	}
+
+	if err := k.bank.SendCoinsFromAccountToModule(ctx, lenderAddr, pool.ModuleName, sdk.NewCoins(deposit)); err != nil {
+		return err
+	}
+
+	err = k.bank.SendCoinsFromModuleToAccount(ctx, pool.ModuleName, lenderAddr, cTokens)
+	if err != nil {
+		return err
+	}
+
+	lendPos.AmountIn = lendPos.AmountIn.Add(deposit)
+	lendPos.UpdatedAmountIn = lendPos.UpdatedAmountIn.Add(deposit.Amount)
+	k.SetLend(ctx, lendPos)
+
+	return nil
+}
+
+func (k Keeper) CloseLend(ctx sdk.Context, addr string, lendId uint64) error {
+
+	lenderAddr, err := sdk.AccAddressFromBech32(addr)
+	if err != nil {
+		return err
+	}
+
+	lendPos, found := k.GetLend(ctx, lendId)
+	if !found {
+		return types.ErrLendNotFound
+	}
+	asset, _ := k.GetAsset(ctx, lendPos.AssetId)
+	pool, _ := k.GetPool(ctx, lendPos.PoolId)
+
+	if lendPos.Owner != addr {
+		return types.ErrLendAccessUnauthorised
+	}
+
+	reservedAmount := k.GetReserveFunds(ctx, lendPos.AmountIn.Denom)
+	availableAmount := k.ModuleBalance(ctx, pool.ModuleName, lendPos.AmountIn.Denom)
+
+	if lendPos.AmountIn.Amount.GT(availableAmount.Sub(reservedAmount)) {
+		return sdkerrors.Wrap(types.ErrLendingPoolInsufficient, lendPos.AmountIn.String())
+	}
+
+	tokens := sdk.NewCoins(lendPos.AmountIn)
+
+	cToken, err := k.ExchangeToken(ctx, lendPos.AmountIn, asset.Name)
+	if err != nil {
+		return err
+	}
+
+	if err := k.SendCoinFromAccountToModule(ctx, lenderAddr, pool.ModuleName, cToken); err != nil {
+		return err
+	}
+
+	cTokens := sdk.NewCoins(cToken)
+	err = k.bank.BurnCoins(ctx, pool.ModuleName, cTokens)
+	if err != nil {
+		return err
+	}
+
+	if err := k.bank.SendCoinsFromModuleToAccount(ctx, pool.ModuleName, lenderAddr, tokens); err != nil {
+		return err
+	}
+
+	lendPos.AmountIn = lendPos.AmountIn.Sub(lendPos.AmountIn)
+	lendPos.UpdatedAmountIn = lendPos.UpdatedAmountIn.Sub(lendPos.AmountIn.Amount)
+
+	k.DeleteLendForAddressByAsset(ctx, lenderAddr, lendPos.AssetId)
+
+	err = k.UpdateUserLendIdMapping(ctx, addr, lendPos.ID, false)
+	if err != nil {
+		return err
+	}
+	k.DeleteLend(ctx, lendPos.ID)
 	return nil
 }
 
