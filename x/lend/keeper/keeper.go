@@ -540,11 +540,39 @@ func (k Keeper) BorrowAsset(ctx sdk.Context, addr string, lendId, pairId uint64,
 	return nil
 }
 
-func (k Keeper) RepayAsset(ctx sdk.Context, borrowerAddr sdk.AccAddress, payment sdk.Coin) error {
-	if !payment.IsValid() {
-		return sdkerrors.Wrap(types.ErrInvalidAsset, payment.String())
+func (k Keeper) RepayAsset(ctx sdk.Context, borrowId uint64, borrowerAddr string, payment sdk.Coin) error {
+	//TODO:
+	// check borrow position
+	// payment is LT UpdatedAmountOut
+	// take the payment from borrower and reduce UpdatedAmountOut
+	// update KV store accordingly
+
+	borrowPos, found := k.GetBorrow(ctx, borrowId)
+	if !found {
+		return types.ErrBorrowNotFound
+	}
+	addr, _ := sdk.AccAddressFromBech32(borrowerAddr)
+	pair, _ := k.GetLendPair(ctx, borrowPos.PairID)
+	pool, _ := k.GetPool(ctx, pair.AssetOutPoolId)
+	lendPos, _ := k.GetLend(ctx, borrowPos.LendingID)
+	if lendPos.Owner != borrowerAddr {
+		return types.ErrLendAccessUnauthorised
+	}
+	if borrowPos.AmountOut.Denom != payment.Denom {
+		return types.ErrBadOfferCoinAmount
 	}
 
+	if payment.Amount.LT(borrowPos.UpdatedAmountOut) {
+		// sending repayment to moduleAcc from borrower
+		if err := k.bank.SendCoinsFromAccountToModule(ctx, addr, pool.ModuleName, sdk.NewCoins(payment)); err != nil {
+			return err
+		}
+		borrowPos.UpdatedAmountOut = borrowPos.UpdatedAmountOut.Sub(payment.Amount)
+		borrowPos.AmountOut = borrowPos.AmountOut.Sub(payment)
+		k.SetBorrow(ctx, borrowPos)
+	} else {
+		return types.ErrInvalidRepayment
+	}
 	return nil
 }
 
@@ -556,11 +584,40 @@ func (k Keeper) DepositBorrowAsset(ctx sdk.Context, borrowerAddr sdk.AccAddress,
 	return nil
 }
 
-func (k Keeper) DrawAsset(ctx sdk.Context, borrowerAddr sdk.AccAddress, payment sdk.Coin) error {
-	if !payment.IsValid() {
-		return sdkerrors.Wrap(types.ErrInvalidAsset, payment.String())
-	}
+func (k Keeper) DrawAsset(ctx sdk.Context, borrowId uint64, borrowerAddr string, payment sdk.Coin) error {
 
+	//TODO:
+	// check borrow position
+	// check current CR and verify
+
+	borrowPos, found := k.GetBorrow(ctx, borrowId)
+	if !found {
+		return types.ErrBorrowNotFound
+	}
+	addr, _ := sdk.AccAddressFromBech32(borrowerAddr)
+	pair, _ := k.GetLendPair(ctx, borrowPos.PairID)
+	pool, _ := k.GetPool(ctx, pair.AssetOutPoolId)
+	lendPos, _ := k.GetLend(ctx, borrowPos.LendingID)
+	if lendPos.Owner != borrowerAddr {
+		return types.ErrLendAccessUnauthorised
+	}
+	if borrowPos.AmountOut.Denom != payment.Denom {
+		return types.ErrBadOfferCoinAmount
+	}
+	if borrowPos.UpdatedAmountOut.GT(payment.Amount) {
+		borrowPos.UpdatedAmountOut = borrowPos.UpdatedAmountOut.Add(payment.Amount)
+		assetIn, _ := k.GetAsset(ctx, lendPos.AssetId)
+		assetOut, _ := k.GetAsset(ctx, pair.AssetOut)
+		err := k.VerifyCollaterlizationRatio(ctx, lendPos.UpdatedAmountIn, assetIn, borrowPos.UpdatedAmountOut, assetOut, pair.LiquidationRatio)
+		if err != nil {
+			return err
+		}
+		if err := k.SendCoinFromModuleToAccount(ctx, pool.ModuleName, addr, payment); err != nil {
+			return err
+		}
+		borrowPos.AmountOut.Add(payment)
+		k.SetBorrow(ctx, borrowPos)
+	}
 	return nil
 }
 

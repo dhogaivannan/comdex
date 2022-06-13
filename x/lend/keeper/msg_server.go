@@ -166,7 +166,7 @@ func (m msgServer) Repay(goCtx context.Context, repay *types.MsgRepay) (*types.M
 		return nil, err
 	}
 
-	if err := m.keeper.RepayAsset(ctx, borrowerAddr, repay.Amount); err != nil {
+	if err := m.keeper.RepayAsset(ctx, repay.BorrowId, repay.Borrower, repay.Amount); err != nil {
 		return nil, err
 	}
 
@@ -222,7 +222,7 @@ func (m msgServer) Draw(goCtx context.Context, draw *types.MsgDraw) (*types.MsgD
 		return nil, err
 	}
 
-	err = m.keeper.DrawAsset(ctx, borrowerAddr, draw.Amount)
+	err = m.keeper.DrawAsset(ctx, draw.BorrowId, draw.Borrower, draw.Amount)
 	if err != nil {
 		return nil, err
 	}

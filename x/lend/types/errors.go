@@ -48,4 +48,5 @@ var (
 	ErrorInvalidAmountOut              = sdkerrors.Register(ModuleName, 1137, "Error Invalid Amount Out")
 	ErrorDuplicateBorrow               = sdkerrors.Register(ModuleName, 1138, "Dublicate borrow Position")
 	ErrBorrowingPoolInsufficient       = sdkerrors.Register(ModuleName, 1139, "borrowing pool insufficient")
+	ErrBorrowNotFound                  = sdkerrors.Register(ModuleName, 1140, "Borrow Position not found")
 )
