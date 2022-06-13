@@ -52,3 +52,7 @@ func (k *Keeper) GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins 
 func (k *Keeper) GetAsset(ctx sdk.Context, id uint64) (assettypes.Asset, bool) {
 	return k.asset.GetAsset(ctx, id)
 }
+
+func (k *Keeper) GetPriceForAsset(ctx sdk.Context, id uint64) (uint64, bool) {
+	return k.market.GetPriceForAsset(ctx, id)
+}

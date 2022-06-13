@@ -43,11 +43,15 @@ var (
 	PoolIdPrefix          = []byte{0x17}
 	LendPairIDKey         = []byte{0x18}
 	LendPairKeyPrefix     = []byte{0x19}
+	BorrowHistoryIdPrefix = []byte{0x25}
+	BorrowPairKeyPrefix   = []byte{0x26}
 
 	AssetToPairMappingKeyPrefix       = []byte{0x20}
 	WhitelistedAssetForDenomKeyPrefix = []byte{0x21}
 	LendForAddressByAssetKeyPrefix    = []byte{0x22}
 	UserLendsForAddressKeyPrefix      = []byte{0x23}
+	BorrowForAddressByPairKeyPrefix   = []byte{0x24}
+	UserBorrowsForAddressKeyPrefix    = []byte{0x27}
 )
 
 func AssetKey(id uint64) []byte {
@@ -112,6 +116,10 @@ func LendPairKey(id uint64) []byte {
 	return append(LendPairKeyPrefix, sdk.Uint64ToBigEndian(id)...)
 }
 
+func BorrowUserKey(id uint64) []byte {
+	return append(BorrowPairKeyPrefix, sdk.Uint64ToBigEndian(id)...)
+}
+
 func AssetToPairMappingKey(id uint64) []byte {
 	return append(AssetToPairMappingKeyPrefix, sdk.Uint64ToBigEndian(id)...)
 }
@@ -125,7 +133,21 @@ func LendForAddressByAsset(address sdk.AccAddress, pairID uint64) []byte {
 	return append(v, sdk.Uint64ToBigEndian(pairID)...)
 }
 
+func BorrowForAddressByPair(address sdk.AccAddress, pairID uint64) []byte {
+	v := append(BorrowForAddressByPairKeyPrefix, address.Bytes()...)
+	if len(v) != 1+20 {
+		panic(fmt.Errorf("invalid key length %d; expected %d", len(v), 1+20))
+	}
+
+	return append(v, sdk.Uint64ToBigEndian(pairID)...)
+}
+
 func UserLendsForAddressKey(address string) []byte {
 
 	return append(UserLendsForAddressKeyPrefix, address...)
+}
+
+func UserBorrowsForAddressKey(address string) []byte {
+
+	return append(UserBorrowsForAddressKeyPrefix, address...)
 }

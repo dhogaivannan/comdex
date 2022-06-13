@@ -21,6 +21,7 @@ type (
 		bank       expected.BankKeeper
 		account    expected.AccountKeeper
 		asset      expected.AssetKeeper
+		market     expected.MarketKeeper
 	}
 )
 
@@ -32,6 +33,7 @@ func NewKeeper(
 	bank expected.BankKeeper,
 	account expected.AccountKeeper,
 	asset expected.AssetKeeper,
+	market expected.MarketKeeper,
 
 ) *Keeper {
 	// set KeyTable if it has not already been set
@@ -48,6 +50,7 @@ func NewKeeper(
 		bank:       bank,
 		account:    account,
 		asset:      asset,
+		market:     market,
 	}
 }
 
@@ -56,6 +59,9 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 func (k Keeper) ModuleBalance(ctx sdk.Context, moduleName string, denom string) sdk.Int {
+	fmt.Println("ModuleBalance...ModuleBalance", moduleName)
+	fmt.Println("ModuleBalance...denom", denom)
+
 	return k.bank.GetBalance(ctx, authtypes.NewModuleAddress(moduleName), denom).Amount
 }
 
@@ -151,14 +157,14 @@ func (k Keeper) WithdrawAsset(ctx sdk.Context, addr string, lendId uint64, withd
 	if !found {
 		return types.ErrLendNotFound
 	}
-	asset, _ := k.GetAsset(ctx, lendPos.AssetId)
+	getAsset, _ := k.GetAsset(ctx, lendPos.AssetId)
 	pool, _ := k.GetPool(ctx, lendPos.PoolId)
 
 	if lendPos.Owner != addr {
 		return types.ErrLendAccessUnauthorised
 	}
 
-	if withdrawal.Denom != asset.Denom {
+	if withdrawal.Denom != getAsset.Denom {
 		return sdkerrors.Wrap(types.ErrBadOfferCoinAmount, withdrawal.Denom)
 	}
 
@@ -175,7 +181,7 @@ func (k Keeper) WithdrawAsset(ctx sdk.Context, addr string, lendId uint64, withd
 
 	tokens := sdk.NewCoins(withdrawal)
 
-	cToken, err := k.ExchangeToken(ctx, withdrawal, asset.Name)
+	cToken, err := k.ExchangeToken(ctx, withdrawal, getAsset.Name)
 	if err != nil {
 		return err
 	}
@@ -196,11 +202,9 @@ func (k Keeper) WithdrawAsset(ctx sdk.Context, addr string, lendId uint64, withd
 		if err := k.bank.SendCoinsFromModuleToAccount(ctx, pool.ModuleName, lenderAddr, tokens); err != nil {
 			return err
 		}
-		fmt.Println("lendPos......before", lendPos)
 
 		lendPos.AmountIn = lendPos.AmountIn.Sub(withdrawal)
 		lendPos.UpdatedAmountIn = lendPos.UpdatedAmountIn.Sub(withdrawal.Amount)
-		fmt.Println("lendPos......1", lendPos)
 		k.SetLend(ctx, lendPos)
 
 	} else {
@@ -228,14 +232,14 @@ func (k Keeper) DepositAsset(ctx sdk.Context, addr string, lendId uint64, deposi
 		return types.ErrLendNotFound
 	}
 
-	asset, _ := k.GetAsset(ctx, lendPos.AssetId)
+	getAsset, _ := k.GetAsset(ctx, lendPos.AssetId)
 	pool, _ := k.GetPool(ctx, lendPos.PoolId)
 
-	if deposit.Denom != asset.Denom {
+	if deposit.Denom != getAsset.Denom {
 		return sdkerrors.Wrap(types.ErrBadOfferCoinAmount, deposit.Denom)
 	}
 
-	cToken, err := k.ExchangeToken(ctx, deposit, asset.Name)
+	cToken, err := k.ExchangeToken(ctx, deposit, getAsset.Name)
 	if err != nil {
 		return err
 	}
@@ -276,7 +280,7 @@ func (k Keeper) CloseLend(ctx sdk.Context, addr string, lendId uint64) error {
 	if !found {
 		return types.ErrLendNotFound
 	}
-	asset, _ := k.GetAsset(ctx, lendPos.AssetId)
+	getAsset, _ := k.GetAsset(ctx, lendPos.AssetId)
 	pool, _ := k.GetPool(ctx, lendPos.PoolId)
 
 	if lendPos.Owner != addr {
@@ -292,7 +296,7 @@ func (k Keeper) CloseLend(ctx sdk.Context, addr string, lendId uint64) error {
 
 	tokens := sdk.NewCoins(lendPos.AmountIn)
 
-	cToken, err := k.ExchangeToken(ctx, lendPos.AmountIn, asset.Name)
+	cToken, err := k.ExchangeToken(ctx, lendPos.AmountIn, getAsset.Name)
 	if err != nil {
 		return err
 	}
@@ -324,23 +328,142 @@ func (k Keeper) CloseLend(ctx sdk.Context, addr string, lendId uint64) error {
 	return nil
 }
 
-func (k Keeper) BorrowAsset(ctx sdk.Context, lenderAddr sdk.AccAddress, loan sdk.Coin) error {
+func uint64InSlice(a uint64, list []uint64) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
 
-	// send token balance to lend module account
-	loanTokens := sdk.NewCoins(loan)
-	if err := k.bank.SendCoinsFromAccountToModule(ctx, lenderAddr, types.ModuleName, loanTokens); err != nil {
+func (k Keeper) BorrowAsset(ctx sdk.Context, addr string, lendId, pairId uint64, loan sdk.Coin) error {
+
+	//TODO:
+	// take Lending Id and check if exists
+	// take the pair id, check if that pair id exists for lend AssetId (Asset to pair mapping)
+	// Amount In is the u/Token user provided (updated Amount In) At the time of creation
+	// option to deposit additional u/Token to inc CR will be added in DepositBorrow function
+	// From Amount Out calculate the CR, if below LR fail
+	// update kv stores accordingly
+	lenderAddr, _ := sdk.AccAddressFromBech32(addr)
+
+	lendPos, found := k.GetLend(ctx, lendId)
+	if !found {
+		return types.ErrLendNotFound
+	}
+	getAsset, _ := k.GetAsset(ctx, lendPos.AssetId)
+	if lendPos.Owner != addr {
+		return types.ErrLendAccessUnauthorised
+	}
+
+	if k.HasBorrowForAddressByPair(ctx, lenderAddr, pairId) {
+		return types.ErrorDuplicateBorrow
+	}
+
+	pairMapping, _ := k.GetAssetToPair(ctx, lendPos.AssetId)
+	found = uint64InSlice(pairId, pairMapping.PairId)
+	if !found {
+		return types.ErrorPairNotFound
+	}
+	pair, found := k.GetLendPair(ctx, pairId)
+	if !found {
+		return types.ErrorPairNotFound
+	}
+	AssetInPool, _ := k.GetPool(ctx, lendPos.PoolId)
+	AssetOutPool, _ := k.GetPool(ctx, pair.AssetOutPoolId)
+
+	//check cr ratio
+	assetIn, _ := k.GetAsset(ctx, lendPos.AssetId)
+	assetOut, _ := k.GetAsset(ctx, pair.AssetOut)
+
+	err := k.VerifyCollaterlizationRatio(ctx, lendPos.UpdatedAmountIn, assetIn, loan.Amount, assetOut, pair.LiquidationRatio)
+	if err != nil {
 		return err
+	}
+	borrowId := k.GetUserBorrowIDHistory(ctx)
+
+	if !pair.IsInterPool {
+		// check sufficient amt in pool to borrow
+		reservedAmount := k.GetReserveFunds(ctx, loan.Denom)
+		availableAmount := k.ModuleBalance(ctx, AssetOutPool.ModuleName, loan.Denom)
+
+		fmt.Println("reservedAmount..", reservedAmount)
+		fmt.Println("availableAmount..", availableAmount)
+		fmt.Println("loan.Amount..", loan.Amount)
+
+		if loan.Amount.GT(availableAmount.Sub(reservedAmount)) {
+			return sdkerrors.Wrap(types.ErrLendingPoolInsufficient, loan.String())
+		}
+
+		AmountIn := sdk.NewCoin(lendPos.AmountIn.Denom, lendPos.UpdatedAmountIn)
+		AmountOut := loan
+		// take u/Tokens from the user
+		cToken, err := k.ExchangeToken(ctx, sdk.NewCoin(lendPos.AmountIn.Denom, lendPos.UpdatedAmountIn), getAsset.Name)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println("cToken...", cToken)
+
+		if err := k.SendCoinFromAccountToModule(ctx, lenderAddr, AssetInPool.ModuleName, cToken); err != nil {
+			return err
+		}
+
+		if err := k.SendCoinFromModuleToAccount(ctx, AssetOutPool.ModuleName, lenderAddr, loan); err != nil {
+			return err
+		}
+
+		borrowPos := types.BorrowAsset{
+			ID:                   borrowId + 1,
+			LendingID:            lendId,
+			PairID:               pairId,
+			AmountIn:             AmountIn,
+			AmountOut:            AmountOut,
+			BorrowingTime:        ctx.BlockTime(),
+			UpdatedAmountOut:     AmountOut.Amount,
+			Interest_Accumulated: sdk.ZeroInt(),
+		}
+		k.SetUserBorrowIDHistory(ctx, borrowPos.ID)
+		k.SetBorrow(ctx, borrowPos)
+		k.SetBorrowForAddressByPair(ctx, lenderAddr, pair.AssetOut, borrowPos.ID)
+		err = k.UpdateUserBorrowIdMapping(ctx, lendPos.Owner, borrowPos.ID, true)
+		if err != nil {
+			return err
+		}
+
 	}
 
 	return nil
 }
 
-func (k Keeper) RepayAsset(ctx sdk.Context, borrowerAddr sdk.AccAddress, payment sdk.Coin) (sdk.Int, error) {
+func (k Keeper) RepayAsset(ctx sdk.Context, borrowerAddr sdk.AccAddress, payment sdk.Coin) error {
 	if !payment.IsValid() {
-		return sdk.ZeroInt(), sdkerrors.Wrap(types.ErrInvalidAsset, payment.String())
+		return sdkerrors.Wrap(types.ErrInvalidAsset, payment.String())
 	}
 
-	return payment.Amount, nil
+	return nil
+}
+
+func (k Keeper) DepositBorrowAsset(ctx sdk.Context, borrowerAddr sdk.AccAddress, payment sdk.Coin) error {
+	if !payment.IsValid() {
+		return sdkerrors.Wrap(types.ErrInvalidAsset, payment.String())
+	}
+
+	return nil
+}
+
+func (k Keeper) DrawAsset(ctx sdk.Context, borrowerAddr sdk.AccAddress, payment sdk.Coin) error {
+	if !payment.IsValid() {
+		return sdkerrors.Wrap(types.ErrInvalidAsset, payment.String())
+	}
+
+	return nil
+}
+
+func (k Keeper) CloseBorrow(ctx sdk.Context, borrowerAddr string, borrowId uint64) error {
+
+	return nil
 }
 
 func (k Keeper) FundModAcc(ctx sdk.Context, moduleName string, lenderAddr sdk.AccAddress, payment sdk.Coin) error {

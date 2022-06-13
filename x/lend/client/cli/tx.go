@@ -179,21 +179,30 @@ func txCloseLend() *cobra.Command {
 
 func txBorrowAsset() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "borrow [Amount]",
+		Use:   "borrow [lend-id] [pair-id] [Amount]",
 		Short: "borrow a whitelisted asset",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
-
-			asset, err := sdk.ParseCoinNormalized(args[0])
+			lendId, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgBorrow(ctx.GetFromAddress(), asset)
+			pairId, err := strconv.ParseUint(args[1], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			asset, err := sdk.ParseCoinNormalized(args[2])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgBorrow(ctx.GetFromAddress(), lendId, pairId, asset)
 
 			return tx.GenerateOrBroadcastTxCLI(ctx, cmd.Flags(), msg)
 		},
@@ -263,9 +272,9 @@ func txFundModuleAccounts() *cobra.Command {
 
 func CmdAddWNewLendPairsProposal() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "add-lend-pairs [asset_in] [asset_out] [is_inter_pool] [Base_Borrow_Rate_Asset1] [Base_Borrow_Rate_Asset2] [Base_Lend_Rate_Asset1] [Base_Lend_Rate_Asset2]",
+		Use:   "add-lend-pairs [asset_in] [asset_out] [is_inter_pool] [asset_out_pool_id] [liquidation_ratio] [min_cr] [Base_Borrow_Rate_Asset1] [Base_Borrow_Rate_Asset2] [Base_Lend_Rate_Asset1] [Base_Lend_Rate_Asset2]",
 		Short: "Add lend asset pairs",
-		Args:  cobra.ExactArgs(7),
+		Args:  cobra.ExactArgs(10),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -282,24 +291,39 @@ func CmdAddWNewLendPairsProposal() *cobra.Command {
 				return err
 			}
 
-			is_inter_pool, err := ParseUint64SliceFromString(args[2], ",")
+			isInterPool, err := ParseUint64SliceFromString(args[2], ",")
 			if err != nil {
 				return err
 			}
 
-			baseborrowrateasset1, err := ParseStringFromString(args[3], ",")
+			assetOutPoolId, err := ParseUint64SliceFromString(args[3], ",")
 			if err != nil {
 				return err
 			}
-			baseborrowrateasset2, err := ParseStringFromString(args[4], ",")
+
+			liquidationRatio, err := ParseStringFromString(args[4], ",")
 			if err != nil {
 				return err
 			}
-			baselendrateasset1, err := ParseStringFromString(args[5], ",")
+
+			minCr, err := ParseStringFromString(args[5], ",")
 			if err != nil {
 				return err
 			}
-			baselendrateasset2, err := ParseStringFromString(args[6], ",")
+
+			baseborrowrateasset1, err := ParseStringFromString(args[6], ",")
+			if err != nil {
+				return err
+			}
+			baseborrowrateasset2, err := ParseStringFromString(args[7], ",")
+			if err != nil {
+				return err
+			}
+			baselendrateasset1, err := ParseStringFromString(args[8], ",")
+			if err != nil {
+				return err
+			}
+			baselendrateasset2, err := ParseStringFromString(args[9], ",")
 			if err != nil {
 				return err
 			}
@@ -311,11 +335,16 @@ func CmdAddWNewLendPairsProposal() *cobra.Command {
 				newbaseborrowrateasset2, _ := sdk.NewDecFromStr(baseborrowrateasset2[i])
 				newbaselendrateasset1, _ := sdk.NewDecFromStr(baselendrateasset1[i])
 				newbaselendrateasset2, _ := sdk.NewDecFromStr(baselendrateasset2[i])
-				interPool := ParseBoolFromString(is_inter_pool[i])
+				newLiquidationRatio, _ := sdk.NewDecFromStr(liquidationRatio[i])
+				newMinCr, _ := sdk.NewDecFromStr(minCr[i])
+				interPool := ParseBoolFromString(isInterPool[i])
 				pairs = append(pairs, types.Extended_Pair{
 					AssetIn:                assetIn[i],
 					AssetOut:               assetOut[i],
 					IsInterPool:            interPool,
+					AssetOutPoolId:         assetOutPoolId[i],
+					LiquidationRatio:       newLiquidationRatio,
+					MinCr:                  newMinCr,
 					BaseBorrowRateAssetIn:  newbaseborrowrateasset1,
 					BaseBorrowRateAssetOut: newbaseborrowrateasset2,
 					BaseLendRateAssetIn:    newbaselendrateasset1,

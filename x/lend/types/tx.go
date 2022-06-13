@@ -76,9 +76,11 @@ func (msg *MsgWithdraw) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func NewMsgBorrow(borrower sdk.AccAddress, amount sdk.Coin) *MsgBorrow {
+func NewMsgBorrow(borrower sdk.AccAddress, lendId, pairId uint64, amount sdk.Coin) *MsgBorrow {
 	return &MsgBorrow{
 		Borrower: borrower.String(),
+		LendId:   lendId,
+		PairId:   pairId,
 		Amount:   amount,
 	}
 }
@@ -239,6 +241,106 @@ func (msg *MsgCloseLend) GetSigners() []sdk.AccAddress {
 
 // GetSignBytes get the bytes for the message signer to sign on
 func (msg *MsgCloseLend) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func NewMsgDraw(borrower sdk.AccAddress, borrowId uint64, amount sdk.Coin) *MsgDraw {
+	return &MsgDraw{
+		Borrower: borrower.String(),
+		BorrowId: borrowId,
+		Amount:   amount,
+	}
+}
+
+func (msg MsgDraw) Route() string { return ModuleName }
+func (msg MsgDraw) Type() string  { return EventTypeWithdrawLoanedAsset }
+
+func (msg *MsgDraw) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.GetBorrower())
+	if err != nil {
+		return err
+	}
+
+	if asset := msg.GetAmount(); !asset.IsValid() {
+		return sdkerrors.Wrap(ErrInvalidAsset, asset.String())
+	}
+
+	return nil
+}
+
+func (msg *MsgDraw) GetSigners() []sdk.AccAddress {
+	lender, _ := sdk.AccAddressFromBech32(msg.GetBorrower())
+	return []sdk.AccAddress{lender}
+}
+
+// GetSignBytes get the bytes for the message signer to sign on
+func (msg *MsgDraw) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func NewMsgDepositBorrow(borrower sdk.AccAddress, borrowId uint64, amount sdk.Coin) *MsgDepositBorrow {
+	return &MsgDepositBorrow{
+		Borrower: borrower.String(),
+		BorrowId: borrowId,
+		Amount:   amount,
+	}
+}
+
+func (msg MsgDepositBorrow) Route() string { return ModuleName }
+func (msg MsgDepositBorrow) Type() string  { return EventTypeWithdrawLoanedAsset }
+
+func (msg *MsgDepositBorrow) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.GetBorrower())
+	if err != nil {
+		return err
+	}
+
+	if asset := msg.GetAmount(); !asset.IsValid() {
+		return sdkerrors.Wrap(ErrInvalidAsset, asset.String())
+	}
+
+	return nil
+}
+
+func (msg *MsgDepositBorrow) GetSigners() []sdk.AccAddress {
+	lender, _ := sdk.AccAddressFromBech32(msg.GetBorrower())
+	return []sdk.AccAddress{lender}
+}
+
+// GetSignBytes get the bytes for the message signer to sign on
+func (msg *MsgDepositBorrow) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func NewMsgCloseBorrow(borrower sdk.AccAddress, borrowId uint64, amount sdk.Coin) *MsgCloseBorrow {
+	return &MsgCloseBorrow{
+		Borrower: borrower.String(),
+		BorrowId: borrowId,
+	}
+}
+
+func (msg MsgCloseBorrow) Route() string { return ModuleName }
+func (msg MsgCloseBorrow) Type() string  { return EventTypeWithdrawLoanedAsset }
+
+func (msg *MsgCloseBorrow) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.GetBorrower())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (msg *MsgCloseBorrow) GetSigners() []sdk.AccAddress {
+	lender, _ := sdk.AccAddressFromBech32(msg.GetBorrower())
+	return []sdk.AccAddress{lender}
+}
+
+// GetSignBytes get the bytes for the message signer to sign on
+func (msg *MsgCloseBorrow) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
