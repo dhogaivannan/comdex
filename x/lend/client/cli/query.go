@@ -31,6 +31,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(
 		queryLend(),
 		queryLends(),
+		QueryAllLendsByOwner(),
 		queryPair(),
 		queryPairs(),
 		queryPool(),
@@ -113,6 +114,35 @@ func queryLends() *cobra.Command {
 	flags.AddQueryFlagsToCmd(cmd)
 	flags.AddPaginationFlagsToCmd(cmd, "lends")
 
+	return cmd
+}
+
+func QueryAllLendsByOwner() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "lends-by-owner [owner]",
+		Short: "lends list for a owner",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			ctx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(ctx)
+
+			res, err := queryClient.QueryAllLendByOwner(cmd.Context(), &types.QueryAllLendByOwnerRequest{
+				Owner: args[0],
+			})
+
+			if err != nil {
+				return err
+			}
+			return ctx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 

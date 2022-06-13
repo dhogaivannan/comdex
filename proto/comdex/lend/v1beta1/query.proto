@@ -44,6 +44,17 @@ message QueryLendResponse {
   [ (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"lend\"" ];
 }
 
+message QueryAllLendByOwnerRequest {
+  string owner = 1 [ (gogoproto.moretags) = "yaml:\"owner\"" ];
+  cosmos.base.query.v1beta1.PageRequest pagination = 2
+  [ (gogoproto.moretags) = "yaml:\"pagination\"" ];
+}
+
+message QueryAllLendByOwnerResponse {
+  repeated uint64 lendIds = 1 [
+    (gogoproto.moretags) = "yaml:\"lend_ids\"" ];
+}
+
 message QueryPairsRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 1
   [ (gogoproto.moretags) = "yaml:\"pagination\"" ];
@@ -120,6 +131,11 @@ service Query {
   rpc QueryLend(QueryLendRequest) returns (QueryLendResponse) {
     option (google.api.http).get = "/comdex/lend/v1beta1/lends/{id}";
   }
+
+  rpc QueryAllLendByOwner(QueryAllLendByOwnerRequest) returns (QueryAllLendByOwnerResponse) {
+    option (google.api.http).get = "/comdex/lend/v1beta1/lends-by-owner/{owner}";
+  };
+
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/comdexofficial/comdex/lend/params";
   }
