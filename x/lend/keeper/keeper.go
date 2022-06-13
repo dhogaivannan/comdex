@@ -195,6 +195,11 @@ func (k Keeper) WithdrawAsset(ctx sdk.Context, addr string, lendId uint64, withd
 		}
 
 		//burn c/Token
+		cTokens := sdk.NewCoins(cToken)
+		err = k.bank.BurnCoins(ctx, pool.ModuleName, cTokens)
+		if err != nil {
+			return err
+		}
 
 		if err := k.bank.SendCoinsFromModuleToAccount(ctx, pool.ModuleName, lenderAddr, tokens); err != nil {
 			return err
