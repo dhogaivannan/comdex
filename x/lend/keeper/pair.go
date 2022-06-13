@@ -48,9 +48,11 @@ func (k Keeper) AddPoolRecords(ctx sdk.Context, pool types.Pool) error {
 
 	poolId := k.GetPoolId(ctx)
 	newPool := types.Pool{
-		PoolId:     poolId + 1,
-		ModuleName: pool.ModuleName,
-		AssetData:  pool.AssetData,
+		PoolId:               poolId + 1,
+		ModuleName:           pool.ModuleName,
+		FirstBridgedAssetId:  pool.FirstBridgedAssetId,
+		SecondBridgedAssetId: pool.SecondBridgedAssetId,
+		AssetData:            pool.AssetData,
 	}
 	k.SetPool(ctx, newPool)
 	k.SetPoolId(ctx, newPool.PoolId)

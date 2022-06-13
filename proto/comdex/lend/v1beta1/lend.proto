@@ -107,7 +107,17 @@ message Pool {
     (gogoproto.moretags) = "yaml:\"module_name\""
   ];
 
-  repeated AssetDataPoolMapping asset_data = 3 [
+  uint64 first_bridged_asset_id = 3 [
+    (gogoproto.customname) = "FirstBridgedAssetId",
+    (gogoproto.moretags) = "yaml:\"first_bridged_asset_id\""
+  ];
+
+  uint64 second_bridged_asset_id = 4 [
+    (gogoproto.customname) = "SecondBridgedAssetId",
+    (gogoproto.moretags) = "yaml:\"second_bridged_asset_id\""
+  ];
+
+  repeated AssetDataPoolMapping asset_data = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.customname) = "AssetData",
     (gogoproto.moretags) = "yaml:\"asset_data\""

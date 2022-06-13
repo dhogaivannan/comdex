@@ -509,41 +509,53 @@ func CmdUpdateLendPairProposal() *cobra.Command {
 
 func CmdAddPoolProposal() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "add-lend-pool [module_name] [asset_id] [is_bridged_asset] ",
+		Use:   "add-lend-pool [module_name] [first_bridged_asset_id] [second_bridged_asset_id] [asset_id] [is_bridged_asset] ",
 		Short: "Add lend pool ",
-		Args:  cobra.ExactArgs(3),
+		Args:  cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			module_name := args[0]
+			moduleName := args[0]
 
-			asset_id, err := ParseUint64SliceFromString(args[1], ",")
+			firstBridgedAssetId, err := strconv.ParseUint(args[1], 10, 64)
 			if err != nil {
 				return err
 			}
 
-			is_bridged_asset, err := ParseUint64SliceFromString(args[2], ",")
+			secondBridgedAssetId, err := strconv.ParseUint(args[2], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			assetId, err := ParseUint64SliceFromString(args[3], ",")
+			if err != nil {
+				return err
+			}
+
+			isBridgedAsset, err := ParseUint64SliceFromString(args[4], ",")
 			if err != nil {
 				return err
 			}
 			var pool types.Pool
 			var assetData []types.AssetDataPoolMapping
 
-			for i := range asset_id {
-				bridged := ParseBoolFromString(is_bridged_asset[i])
+			for i := range assetId {
+				bridged := ParseBoolFromString(isBridgedAsset[i])
 				assetData = append(assetData, types.AssetDataPoolMapping{
-					AssetId:    asset_id[i],
+					AssetId:    assetId[i],
 					IsBridged:  bridged,
 					LendRate:   sdk.ZeroDec(),
 					BorrowRate: sdk.ZeroDec(),
 				})
 			}
 			pool = types.Pool{
-				ModuleName: module_name,
-				AssetData:  assetData,
+				ModuleName:           moduleName,
+				FirstBridgedAssetId:  firstBridgedAssetId,
+				SecondBridgedAssetId: secondBridgedAssetId,
+				AssetData:            assetData,
 			}
 
 			title, err := cmd.Flags().GetString(cli.FlagTitle)
@@ -602,22 +614,22 @@ func CmdAddAssetToPairProposal() *cobra.Command {
 				return err
 			}
 
-			asset_id, err := strconv.ParseUint(args[0], 10, 64)
+			assetId, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
 				return err
 			}
 
-			pair_id, _ := ParseUint64SliceFromString(args[1], ",")
+			rawPairId, _ := ParseUint64SliceFromString(args[1], ",")
 			if err != nil {
 				return err
 			}
 			var pairId []uint64
-			for i := range pair_id {
+			for i := range rawPairId {
 
-				pairId = append(pairId, pair_id[i])
+				pairId = append(pairId, rawPairId[i])
 			}
 			assetToPairMapping := types.AssetToPairMapping{
-				AssetId: asset_id,
+				AssetId: assetId,
 				PairId:  pairId,
 			}
 
