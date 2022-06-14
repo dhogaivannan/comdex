@@ -91,8 +91,9 @@ message MsgCloseBorrow {
 
 message MsgFundModuleAccounts {
   string                   moduleName = 1;
-  string                   lender = 2;
-  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
+  uint64                   assetId =2;
+  string                   lender = 3;
+  cosmos.base.v1beta1.Coin amount = 4 [(gogoproto.nullable) = false];
 }
 
 message MsgLendResponse {}

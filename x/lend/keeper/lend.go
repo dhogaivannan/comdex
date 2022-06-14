@@ -366,10 +366,10 @@ func (k *Keeper) HasBorrowForAddressByPair(ctx sdk.Context, address sdk.AccAddre
 	return store.Has(key)
 }
 
-func (k *Keeper) DeleteBorrowForAddressByPair(ctx sdk.Context, address sdk.AccAddress, assetID uint64) {
+func (k *Keeper) DeleteBorrowForAddressByPair(ctx sdk.Context, address sdk.AccAddress, pairID uint64) {
 	var (
 		store = k.Store(ctx)
-		key   = types.BorrowForAddressByPair(address, assetID)
+		key   = types.BorrowForAddressByPair(address, pairID)
 	)
 
 	store.Delete(key)
@@ -429,4 +429,38 @@ func (k *Keeper) SetUserBorrows(ctx sdk.Context, userBorrows types.UserBorrowIdM
 		value = k.cdc.MustMarshal(&userBorrows)
 	)
 	store.Set(key, value)
+}
+
+func (k *Keeper) SetLendIdToBorrowIdMapping(ctx sdk.Context, LendIdToBorrowIdMapping types.LendIdToBorrowIdMapping) {
+	var (
+		store = k.Store(ctx)
+		key   = types.LendIdToBorrowIdMappingKey(LendIdToBorrowIdMapping.LendingID)
+		value = k.cdc.MustMarshal(&LendIdToBorrowIdMapping)
+	)
+
+	store.Set(key, value)
+}
+
+func (k *Keeper) GetLendIdToBorrowIdMapping(ctx sdk.Context, id uint64) (LendIdToBorrowIdMapping types.LendIdToBorrowIdMapping, found bool) {
+	var (
+		store = k.Store(ctx)
+		key   = types.LendIdToBorrowIdMappingKey(id)
+		value = store.Get(key)
+	)
+
+	if value == nil {
+		return LendIdToBorrowIdMapping, false
+	}
+
+	k.cdc.MustUnmarshal(value, &LendIdToBorrowIdMapping)
+	return LendIdToBorrowIdMapping, true
+}
+
+func (k *Keeper) DeleteLendIdToBorrowIdMapping(ctx sdk.Context, lendingId uint64) {
+	var (
+		store = k.Store(ctx)
+		key   = types.LendIdToBorrowIdMappingKey(lendingId)
+	)
+
+	store.Delete(key)
 }

@@ -52,6 +52,7 @@ var (
 	UserLendsForAddressKeyPrefix      = []byte{0x23}
 	BorrowForAddressByPairKeyPrefix   = []byte{0x24}
 	UserBorrowsForAddressKeyPrefix    = []byte{0x27}
+	LendIdToBorrowIdMappingKeyPrefix  = []byte{0x28}
 )
 
 func AssetKey(id uint64) []byte {
@@ -143,11 +144,13 @@ func BorrowForAddressByPair(address sdk.AccAddress, pairID uint64) []byte {
 }
 
 func UserLendsForAddressKey(address string) []byte {
-
 	return append(UserLendsForAddressKeyPrefix, address...)
 }
 
 func UserBorrowsForAddressKey(address string) []byte {
-
 	return append(UserBorrowsForAddressKeyPrefix, address...)
+}
+
+func LendIdToBorrowIdMappingKey(id uint64) []byte {
+	return append(LendIdToBorrowIdMappingKeyPrefix, sdk.Uint64ToBigEndian(id)...)
 }

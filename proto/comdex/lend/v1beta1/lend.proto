@@ -219,3 +219,14 @@ message UserBorrowIdMapping{
     (gogoproto.moretags) = "yaml:\"borrow_ids\""
   ];
 }
+
+message LendIdToBorrowIdMapping{
+  uint64 lending_id = 1[
+    (gogoproto.customname) = "LendingID",
+    (gogoproto.moretags) = "yaml:\"lending_id\""
+  ];
+  uint64 borrowing_id = 2 [
+    (gogoproto.customname) = "BorrowingID",
+    (gogoproto.moretags) = "yaml:\"borrowing_id\""
+  ];
+}
