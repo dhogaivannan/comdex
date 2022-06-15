@@ -179,9 +179,9 @@ func txCloseLend() *cobra.Command {
 
 func txBorrowAsset() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "borrow [lend-id] [pair-id] [is_stable_borrow] [Amount]",
+		Use:   "borrow [lend-id] [pair-id] [is-stable-borrow] [amount-in] [amount-out]",
 		Short: "borrow a whitelisted asset",
-		Args:  cobra.ExactArgs(3),
+		Args:  cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -204,12 +204,17 @@ func txBorrowAsset() *cobra.Command {
 
 			isStableBorrow := ParseBoolFromString(StableBorrow)
 
-			asset, err := sdk.ParseCoinNormalized(args[2])
+			amountIn, err := sdk.ParseCoinNormalized(args[3])
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgBorrow(ctx.GetFromAddress(), lendId, pairId, isStableBorrow, asset)
+			amountOut, err := sdk.ParseCoinNormalized(args[4])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgBorrow(ctx.GetFromAddress(), lendId, pairId, isStableBorrow, amountIn, amountOut)
 
 			return tx.GenerateOrBroadcastTxCLI(ctx, cmd.Flags(), msg)
 		},
@@ -249,9 +254,9 @@ func txRepayAsset() *cobra.Command {
 
 func txFundModuleAccounts() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "fund-module [module-name] [amount]",
+		Use:   "fund-module [module-name] [asset_id] [amount]",
 		Short: "Deposit amount to the respective module account",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -260,12 +265,17 @@ func txFundModuleAccounts() *cobra.Command {
 
 			moduleName := args[0]
 
-			amount, err := sdk.ParseCoinNormalized(args[1])
+			assetId, err := strconv.ParseUint(args[1], 10, 64)
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgFundModuleAccounts(moduleName, ctx.GetFromAddress(), amount)
+			amount, err := sdk.ParseCoinNormalized(args[2])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgFundModuleAccounts(moduleName, assetId, ctx.GetFromAddress(), amount)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err

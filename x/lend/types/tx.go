@@ -76,13 +76,14 @@ func (msg *MsgWithdraw) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func NewMsgBorrow(borrower sdk.AccAddress, lendId, pairId uint64, isStableBorrow bool, amount sdk.Coin) *MsgBorrow {
+func NewMsgBorrow(borrower sdk.AccAddress, lendId, pairId uint64, isStableBorrow bool, amountIn, amountOut sdk.Coin) *MsgBorrow {
 	return &MsgBorrow{
 		Borrower:       borrower.String(),
 		LendId:         lendId,
 		PairId:         pairId,
 		IsStableBorrow: isStableBorrow,
-		Amount:         amount,
+		AmountIn:       amountIn,
+		AmountOut:      amountOut,
 	}
 }
 
@@ -95,7 +96,10 @@ func (msg *MsgBorrow) ValidateBasic() error {
 		return err
 	}
 
-	if asset := msg.GetAmount(); !asset.IsValid() {
+	if asset := msg.GetAmountIn(); !asset.IsValid() {
+		return sdkerrors.Wrap(ErrInvalidAsset, asset.String())
+	}
+	if asset := msg.GetAmountOut(); !asset.IsValid() {
 		return sdkerrors.Wrap(ErrInvalidAsset, asset.String())
 	}
 
@@ -147,9 +151,10 @@ func (msg *MsgRepay) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func NewMsgFundModuleAccounts(moduleName string, lender sdk.AccAddress, amount sdk.Coin) *MsgFundModuleAccounts {
+func NewMsgFundModuleAccounts(moduleName string, AssetId uint64, lender sdk.AccAddress, amount sdk.Coin) *MsgFundModuleAccounts {
 	return &MsgFundModuleAccounts{
 		ModuleName: moduleName,
+		AssetId:    AssetId,
 		Lender:     lender.String(),
 		Amount:     amount,
 	}

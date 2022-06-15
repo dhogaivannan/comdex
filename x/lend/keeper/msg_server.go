@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 	"github.com/comdex-official/comdex/x/lend/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -138,7 +139,7 @@ func (m msgServer) Borrow(goCtx context.Context, borrow *types.MsgBorrow) (*type
 		return nil, err
 	}
 
-	if err := m.keeper.BorrowAsset(ctx, borrow.Borrower, borrow.LendId, borrow.PairId, borrow.IsStableBorrow, borrow.Amount); err != nil {
+	if err := m.keeper.BorrowAsset(ctx, borrow.Borrower, borrow.LendId, borrow.PairId, borrow.IsStableBorrow, borrow.AmountIn, borrow.AmountOut); err != nil {
 		return nil, err
 	}
 
@@ -146,7 +147,8 @@ func (m msgServer) Borrow(goCtx context.Context, borrow *types.MsgBorrow) (*type
 		sdk.NewEvent(
 			types.EventTypeBorrowAsset,
 			sdk.NewAttribute(types.EventAttrBorrower, borrowerAddr.String()),
-			sdk.NewAttribute(sdk.AttributeKeyAmount, borrow.Amount.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, borrow.AmountIn.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, borrow.AmountOut.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -279,6 +281,7 @@ func (m msgServer) FundModuleAccounts(goCtx context.Context, accounts *types.Msg
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("goose......")
 
 	if err := m.keeper.FundModAcc(ctx, accounts.ModuleName, accounts.AssetId, lenderAddr, accounts.Amount); err != nil {
 		return nil, err

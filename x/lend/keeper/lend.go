@@ -343,10 +343,10 @@ func (k *Keeper) DeleteBorrow(ctx sdk.Context, id uint64) {
 	store.Delete(key)
 }
 
-func (k *Keeper) SetBorrowForAddressByPair(ctx sdk.Context, address sdk.AccAddress, assetID, id uint64) {
+func (k *Keeper) SetBorrowForAddressByPair(ctx sdk.Context, address sdk.AccAddress, pairID, id uint64) {
 	var (
 		store = k.Store(ctx)
-		key   = types.BorrowForAddressByPair(address, assetID)
+		key   = types.BorrowForAddressByPair(address, pairID)
 		value = k.cdc.MustMarshal(
 			&protobuftypes.UInt64Value{
 				Value: id,
@@ -357,10 +357,10 @@ func (k *Keeper) SetBorrowForAddressByPair(ctx sdk.Context, address sdk.AccAddre
 	store.Set(key, value)
 }
 
-func (k *Keeper) HasBorrowForAddressByPair(ctx sdk.Context, address sdk.AccAddress, assetID uint64) bool {
+func (k *Keeper) HasBorrowForAddressByPair(ctx sdk.Context, address sdk.AccAddress, pairID uint64) bool {
 	var (
 		store = k.Store(ctx)
-		key   = types.BorrowForAddressByPair(address, assetID)
+		key   = types.BorrowForAddressByPair(address, pairID)
 	)
 
 	return store.Has(key)
