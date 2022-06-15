@@ -59,37 +59,45 @@ message BorrowAsset {
     (gogoproto.customname) = "LendingID",
     (gogoproto.moretags) = "yaml:\"lending_id\""
   ];
-
-  uint64 pair_id = 3 [
+  bool is_stable_borrow = 3 [
+    (gogoproto.moretags) = "yaml:\"is_stable_borrow\""
+  ];
+  uint64 pair_id = 4 [
     (gogoproto.customname) = "PairID",
     (gogoproto.moretags) = "yaml:\"pair_id\""
   ];
 
-  cosmos.base.v1beta1.Coin amount_in = 4 [
+  cosmos.base.v1beta1.Coin amount_in = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"amount_in\"",
     (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Coin"
   ];
 
-  cosmos.base.v1beta1.Coin amount_out = 5 [
+  cosmos.base.v1beta1.Coin amount_out = 6 [
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"amount_out\"",
     (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Coin"
   ];
 
-  google.protobuf.Timestamp borrowing_time = 6 [
+  google.protobuf.Timestamp borrowing_time = 7 [
     (gogoproto.nullable) = false,
     (gogoproto.stdtime) = true,
     (gogoproto.moretags) = "yaml:\"borrowing_time\""
   ];
 
-  string updated_amount_out = 7 [
+  string stable_borrow_rate = 8 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"stable_borrow_rate\""
+  ];
+
+  string updated_amount_out = 9 [
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"updated_amount_out\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
 
-  string interest_Accumulated = 8 [
+  string interest_Accumulated = 10 [
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"interest_accumulated\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
@@ -143,6 +151,11 @@ message AssetDataPoolMapping{
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"borrow_rate\""
   ];
+  string stable_borrow_rate = 5 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"stable_borrow_rate\""
+  ];
 }
 
 message Extended_Pair {
@@ -161,35 +174,6 @@ message Extended_Pair {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable)   = false,
     (gogoproto.moretags)   = "yaml:\"liquidation_ratio\""
-  ];
-
-  string min_cr = 7 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable)   = false,
-    (gogoproto.moretags)   = "yaml:\"min_cr\""
-  ];
-
-  string base_borrow_rate_asset_in = 8 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable) = false,
-    (gogoproto.moretags) = "yaml:\"base_borrow_rate_asset_1\""
-  ];
-
-  string base_lend_rate_asset_in = 9 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable) = false,
-    (gogoproto.moretags) = "yaml:\"base_lend_rate_asset_1\""
-  ];
-  string base_borrow_rate_asset_out = 10 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable) = false,
-    (gogoproto.moretags) = "yaml:\"base_borrow_rate_asset_2\""
-  ];
-
-  string base_lend_rate_asset_out = 11 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable) = false,
-    (gogoproto.moretags) = "yaml:\"base_lend_rate_asset_2\""
   ];
 }
 

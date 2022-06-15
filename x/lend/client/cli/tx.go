@@ -179,7 +179,7 @@ func txCloseLend() *cobra.Command {
 
 func txBorrowAsset() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "borrow [lend-id] [pair-id] [Amount]",
+		Use:   "borrow [lend-id] [pair-id] [is_stable_borrow] [Amount]",
 		Short: "borrow a whitelisted asset",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -197,12 +197,19 @@ func txBorrowAsset() *cobra.Command {
 				return err
 			}
 
+			StableBorrow, err := strconv.ParseUint(args[2], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			isStableBorrow := ParseBoolFromString(StableBorrow)
+
 			asset, err := sdk.ParseCoinNormalized(args[2])
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgBorrow(ctx.GetFromAddress(), lendId, pairId, asset)
+			msg := types.NewMsgBorrow(ctx.GetFromAddress(), lendId, pairId, isStableBorrow, asset)
 
 			return tx.GenerateOrBroadcastTxCLI(ctx, cmd.Flags(), msg)
 		},
@@ -272,9 +279,9 @@ func txFundModuleAccounts() *cobra.Command {
 
 func CmdAddWNewLendPairsProposal() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "add-lend-pairs [asset_in] [asset_out] [is_inter_pool] [asset_out_pool_id] [liquidation_ratio] [min_cr] [Base_Borrow_Rate_Asset1] [Base_Borrow_Rate_Asset2] [Base_Lend_Rate_Asset1] [Base_Lend_Rate_Asset2]",
+		Use:   "add-lend-pairs [asset_in] [asset_out] [is_inter_pool] [asset_out_pool_id] [liquidation_ratio]",
 		Short: "Add lend asset pairs",
-		Args:  cobra.ExactArgs(10),
+		Args:  cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -306,49 +313,16 @@ func CmdAddWNewLendPairsProposal() *cobra.Command {
 				return err
 			}
 
-			minCr, err := ParseStringFromString(args[5], ",")
-			if err != nil {
-				return err
-			}
-
-			baseborrowrateasset1, err := ParseStringFromString(args[6], ",")
-			if err != nil {
-				return err
-			}
-			baseborrowrateasset2, err := ParseStringFromString(args[7], ",")
-			if err != nil {
-				return err
-			}
-			baselendrateasset1, err := ParseStringFromString(args[8], ",")
-			if err != nil {
-				return err
-			}
-			baselendrateasset2, err := ParseStringFromString(args[9], ",")
-			if err != nil {
-				return err
-			}
-
 			var pairs []types.Extended_Pair
 			for i := range assetIn {
-
-				newbaseborrowrateasset1, _ := sdk.NewDecFromStr(baseborrowrateasset1[i])
-				newbaseborrowrateasset2, _ := sdk.NewDecFromStr(baseborrowrateasset2[i])
-				newbaselendrateasset1, _ := sdk.NewDecFromStr(baselendrateasset1[i])
-				newbaselendrateasset2, _ := sdk.NewDecFromStr(baselendrateasset2[i])
 				newLiquidationRatio, _ := sdk.NewDecFromStr(liquidationRatio[i])
-				newMinCr, _ := sdk.NewDecFromStr(minCr[i])
 				interPool := ParseBoolFromString(isInterPool[i])
 				pairs = append(pairs, types.Extended_Pair{
-					AssetIn:                assetIn[i],
-					AssetOut:               assetOut[i],
-					IsInterPool:            interPool,
-					AssetOutPoolId:         assetOutPoolId[i],
-					LiquidationRatio:       newLiquidationRatio,
-					MinCr:                  newMinCr,
-					BaseBorrowRateAssetIn:  newbaseborrowrateasset1,
-					BaseBorrowRateAssetOut: newbaseborrowrateasset2,
-					BaseLendRateAssetIn:    newbaselendrateasset1,
-					BaseLendRateAssetOut:   newbaselendrateasset2,
+					AssetIn:          assetIn[i],
+					AssetOut:         assetOut[i],
+					IsInterPool:      interPool,
+					AssetOutPoolId:   assetOutPoolId[i],
+					LiquidationRatio: newLiquidationRatio,
 				})
 			}
 
@@ -413,48 +387,8 @@ func CmdUpdateLendPairProposal() *cobra.Command {
 				return err
 			}
 
-			baseborrowrateasset1, err := cmd.Flags().GetString(flagbaseborrowrateasset1)
-			if err != nil {
-				return err
-			}
-			newbaseborrowrateasset1, err := sdk.NewDecFromStr(baseborrowrateasset1)
-			if err != nil {
-				return err
-			}
-
-			baseborrowrateasset2, err := cmd.Flags().GetString(flagbaseborrowrateasset2)
-			if err != nil {
-				return err
-			}
-			newbaseborrowrateasset2, err := sdk.NewDecFromStr(baseborrowrateasset2)
-			if err != nil {
-				return err
-			}
-
-			baselendrateasset1, err := cmd.Flags().GetString(flagbaselendrateasset1)
-			if err != nil {
-				return err
-			}
-			newbaselendrateasset1, err := sdk.NewDecFromStr(baselendrateasset1)
-			if err != nil {
-				return err
-			}
-
-			baselendrateasset2, err := cmd.Flags().GetString(flagbaselendrateasset2)
-			if err != nil {
-				return err
-			}
-			newbaselendrateasset2, err := sdk.NewDecFromStr(baselendrateasset2)
-			if err != nil {
-				return err
-			}
-
 			pair := types.Extended_Pair{
-				Id:                     id,
-				BaseBorrowRateAssetIn:  newbaseborrowrateasset1,
-				BaseBorrowRateAssetOut: newbaseborrowrateasset2,
-				BaseLendRateAssetIn:    newbaselendrateasset1,
-				BaseLendRateAssetOut:   newbaselendrateasset2,
+				Id: id,
 			}
 
 			title, err := cmd.Flags().GetString(cli.FlagTitle)

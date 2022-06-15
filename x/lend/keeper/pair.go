@@ -18,17 +18,12 @@ func (k *Keeper) AddLendPairsRecords(ctx sdk.Context, records ...types.Extended_
 		var (
 			id   = k.GetLendPairID(ctx)
 			pair = types.Extended_Pair{
-				Id:                     id + 1,
-				AssetIn:                msg.AssetIn,
-				AssetOut:               msg.AssetOut,
-				IsInterPool:            msg.IsInterPool,
-				AssetOutPoolId:         msg.AssetOutPoolId,
-				LiquidationRatio:       msg.LiquidationRatio,
-				MinCr:                  msg.MinCr,
-				BaseBorrowRateAssetIn:  msg.BaseBorrowRateAssetIn,
-				BaseLendRateAssetIn:    msg.BaseLendRateAssetIn,
-				BaseBorrowRateAssetOut: msg.BaseBorrowRateAssetOut,
-				BaseLendRateAssetOut:   msg.BaseLendRateAssetOut,
+				Id:               id + 1,
+				AssetIn:          msg.AssetIn,
+				AssetOut:         msg.AssetOut,
+				IsInterPool:      msg.IsInterPool,
+				AssetOutPoolId:   msg.AssetOutPoolId,
+				LiquidationRatio: msg.LiquidationRatio,
 			}
 		)
 
@@ -79,19 +74,6 @@ func (k *Keeper) UpdateLendPairRecords(ctx sdk.Context, msg types.Extended_Pair)
 	pair, found := k.GetLendPair(ctx, msg.Id)
 	if !found {
 		return types.ErrorPairDoesNotExist
-	}
-
-	if !msg.BaseBorrowRateAssetIn.IsZero() {
-		pair.BaseBorrowRateAssetIn = msg.BaseBorrowRateAssetIn
-	}
-	if !msg.BaseBorrowRateAssetOut.IsZero() {
-		pair.BaseBorrowRateAssetOut = msg.BaseBorrowRateAssetOut
-	}
-	if !msg.BaseLendRateAssetIn.IsZero() {
-		pair.BaseLendRateAssetIn = msg.BaseLendRateAssetIn
-	}
-	if !msg.BaseLendRateAssetOut.IsZero() {
-		pair.BaseLendRateAssetOut = msg.BaseLendRateAssetOut
 	}
 
 	k.SetLendPair(ctx, pair)

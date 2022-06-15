@@ -76,12 +76,13 @@ func (msg *MsgWithdraw) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func NewMsgBorrow(borrower sdk.AccAddress, lendId, pairId uint64, amount sdk.Coin) *MsgBorrow {
+func NewMsgBorrow(borrower sdk.AccAddress, lendId, pairId uint64, isStableBorrow bool, amount sdk.Coin) *MsgBorrow {
 	return &MsgBorrow{
-		Borrower: borrower.String(),
-		LendId:   lendId,
-		PairId:   pairId,
-		Amount:   amount,
+		Borrower:       borrower.String(),
+		LendId:         lendId,
+		PairId:         pairId,
+		IsStableBorrow: isStableBorrow,
+		Amount:         amount,
 	}
 }
 

@@ -333,16 +333,20 @@ func (k Keeper) CloseLend(ctx sdk.Context, addr string, lendId uint64) error {
 		return types.ErrLendAccessUnauthorised
 	}
 
+	_, found = k.GetLendIdToBorrowIdMapping(ctx, lendId)
+	if found {
+		return types.ErrBorrowingPositionOpen
+	}
 	reservedAmount := k.GetReserveFunds(ctx, lendPos.AmountIn.Denom)
 	availableAmount := k.ModuleBalance(ctx, pool.ModuleName, lendPos.AmountIn.Denom)
 
-	if lendPos.AmountIn.Amount.GT(availableAmount.Sub(reservedAmount)) {
+	if lendPos.UpdatedAmountIn.GT(availableAmount.Sub(reservedAmount)) {
 		return sdkerrors.Wrap(types.ErrLendingPoolInsufficient, lendPos.AmountIn.String())
 	}
 
-	tokens := sdk.NewCoins(lendPos.AmountIn)
+	tokens := sdk.NewCoins(sdk.NewCoin(lendPos.AmountIn.Denom, lendPos.UpdatedAmountIn))
 
-	cToken, err := k.ExchangeToken(ctx, lendPos.AmountIn, getAsset.Name)
+	cToken, err := k.ExchangeToken(ctx, sdk.NewCoin(lendPos.AmountIn.Denom, lendPos.UpdatedAmountIn), getAsset.Name)
 	if err != nil {
 		return err
 	}
@@ -360,9 +364,6 @@ func (k Keeper) CloseLend(ctx sdk.Context, addr string, lendId uint64) error {
 	if err := k.bank.SendCoinsFromModuleToAccount(ctx, pool.ModuleName, lenderAddr, tokens); err != nil {
 		return err
 	}
-
-	lendPos.AmountIn = lendPos.AmountIn.Sub(lendPos.AmountIn)
-	lendPos.UpdatedAmountIn = lendPos.UpdatedAmountIn.Sub(lendPos.AmountIn.Amount)
 
 	k.DeleteLendForAddressByAsset(ctx, lenderAddr, lendPos.AssetId)
 
@@ -383,7 +384,7 @@ func uint64InSlice(a uint64, list []uint64) bool {
 	return false
 }
 
-func (k Keeper) BorrowAsset(ctx sdk.Context, addr string, lendId, pairId uint64, loan sdk.Coin) error {
+func (k Keeper) BorrowAsset(ctx sdk.Context, addr string, lendId, pairId uint64, IsStableBorrow bool, loan sdk.Coin) error {
 
 	//TODO:
 	// take Lending Id and check if exists
@@ -455,12 +456,26 @@ func (k Keeper) BorrowAsset(ctx sdk.Context, addr string, lendId, pairId uint64,
 			return err
 		}
 
+		var StableBorrowRate sdk.Dec
+		if IsStableBorrow {
+			for _, v := range AssetOutPool.AssetData {
+				if v.AssetId == pair.AssetOut {
+					StableBorrowRate = v.StableBorrowRate
+				}
+			}
+
+		} else {
+			StableBorrowRate = sdk.ZeroDec()
+		}
+
 		borrowPos := types.BorrowAsset{
 			ID:                   borrowId + 1,
 			LendingID:            lendId,
 			PairID:               pairId,
 			AmountIn:             AmountIn,
 			AmountOut:            AmountOut,
+			IsStableBorrow:       IsStableBorrow,
+			StableBorrowRate:     StableBorrowRate,
 			BorrowingTime:        ctx.BlockTime(),
 			UpdatedAmountOut:     AmountOut.Amount,
 			Interest_Accumulated: sdk.ZeroInt(),
@@ -524,12 +539,26 @@ func (k Keeper) BorrowAsset(ctx sdk.Context, addr string, lendId, pairId uint64,
 			AmountIn := sdk.NewCoin(lendPos.AmountIn.Denom, lendPos.UpdatedAmountIn)
 			AmountOut := loan
 
+			var StableBorrowRate sdk.Dec
+			if IsStableBorrow {
+				for _, v := range AssetOutPool.AssetData {
+					if v.AssetId == pair.AssetOut {
+						StableBorrowRate = v.StableBorrowRate
+					}
+				}
+
+			} else {
+				StableBorrowRate = sdk.ZeroDec()
+			}
+
 			borrowPos := types.BorrowAsset{
 				ID:                   borrowId + 1,
 				LendingID:            lendId,
 				PairID:               pairId,
 				AmountIn:             AmountIn,
 				AmountOut:            AmountOut,
+				IsStableBorrow:       IsStableBorrow,
+				StableBorrowRate:     StableBorrowRate,
 				BorrowingTime:        ctx.BlockTime(),
 				UpdatedAmountOut:     AmountOut.Amount,
 				Interest_Accumulated: sdk.ZeroInt(),
@@ -569,12 +598,26 @@ func (k Keeper) BorrowAsset(ctx sdk.Context, addr string, lendId, pairId uint64,
 			AmountIn := sdk.NewCoin(lendPos.AmountIn.Denom, lendPos.UpdatedAmountIn)
 			AmountOut := loan
 
+			var StableBorrowRate sdk.Dec
+			if IsStableBorrow {
+				for _, v := range AssetOutPool.AssetData {
+					if v.AssetId == pair.AssetOut {
+						StableBorrowRate = v.StableBorrowRate
+					}
+				}
+
+			} else {
+				StableBorrowRate = sdk.ZeroDec()
+			}
+
 			borrowPos := types.BorrowAsset{
 				ID:                   borrowId + 1,
 				LendingID:            lendId,
 				PairID:               pairId,
 				AmountIn:             AmountIn,
 				AmountOut:            AmountOut,
+				IsStableBorrow:       IsStableBorrow,
+				StableBorrowRate:     StableBorrowRate,
 				BorrowingTime:        ctx.BlockTime(),
 				UpdatedAmountOut:     AmountOut.Amount,
 				Interest_Accumulated: sdk.ZeroInt(),

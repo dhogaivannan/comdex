@@ -49,4 +49,5 @@ var (
 	ErrorDuplicateBorrow               = sdkerrors.Register(ModuleName, 1138, "Dublicate borrow Position")
 	ErrBorrowingPoolInsufficient       = sdkerrors.Register(ModuleName, 1139, "borrowing pool insufficient")
 	ErrBorrowNotFound                  = sdkerrors.Register(ModuleName, 1140, "Borrow Position not found")
+	ErrBorrowingPositionOpen           = sdkerrors.Register(ModuleName, 1141, "borrowing position open")
 )

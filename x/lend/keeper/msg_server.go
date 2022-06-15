@@ -138,7 +138,7 @@ func (m msgServer) Borrow(goCtx context.Context, borrow *types.MsgBorrow) (*type
 		return nil, err
 	}
 
-	if err := m.keeper.BorrowAsset(ctx, borrow.Borrower, borrow.LendId, borrow.PairId, borrow.Amount); err != nil {
+	if err := m.keeper.BorrowAsset(ctx, borrow.Borrower, borrow.LendId, borrow.PairId, borrow.IsStableBorrow, borrow.Amount); err != nil {
 		return nil, err
 	}
 

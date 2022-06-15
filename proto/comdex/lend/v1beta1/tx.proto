@@ -62,7 +62,8 @@ message MsgBorrow {
   string                   borrower = 1;
   uint64                   lend_id = 2;
   uint64                   pair_id = 3;
-  cosmos.base.v1beta1.Coin amount = 4 [(gogoproto.nullable) = false];
+  bool                     is_stable_borrow =4;
+  cosmos.base.v1beta1.Coin amount = 5 [(gogoproto.nullable) = false];
 }
 
 message MsgRepay {
