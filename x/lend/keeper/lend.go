@@ -441,6 +441,39 @@ func (k *Keeper) SetLendIdToBorrowIdMapping(ctx sdk.Context, LendIdToBorrowIdMap
 	store.Set(key, value)
 }
 
+func (k *Keeper) UpdateLendIdToBorrowIdMapping(
+	ctx sdk.Context,
+	lendId uint64,
+	borrowId uint64,
+	isInsert bool,
+) error {
+
+	LendIdToBorrowIdMapping, found := k.GetLendIdToBorrowIdMapping(ctx, lendId)
+
+	if !found && isInsert {
+		LendIdToBorrowIdMapping = types.LendIdToBorrowIdMapping{
+			LendingID:   lendId,
+			BorrowingID: nil,
+		}
+	} else if !found && !isInsert {
+		return types.ErrorLendOwnerNotFound
+	}
+
+	if isInsert {
+		LendIdToBorrowIdMapping.BorrowingID = append(LendIdToBorrowIdMapping.BorrowingID, borrowId)
+	} else {
+		for index, id := range LendIdToBorrowIdMapping.BorrowingID {
+			if id == borrowId {
+				LendIdToBorrowIdMapping.BorrowingID = append(LendIdToBorrowIdMapping.BorrowingID[:index], LendIdToBorrowIdMapping.BorrowingID[index+1:]...)
+				break
+			}
+		}
+	}
+
+	k.SetLendIdToBorrowIdMapping(ctx, LendIdToBorrowIdMapping)
+	return nil
+}
+
 func (k *Keeper) GetLendIdToBorrowIdMapping(ctx sdk.Context, id uint64) (LendIdToBorrowIdMapping types.LendIdToBorrowIdMapping, found bool) {
 	var (
 		store = k.Store(ctx)

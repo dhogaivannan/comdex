@@ -476,13 +476,10 @@ func (k Keeper) BorrowAsset(ctx sdk.Context, addr string, lendId, pairId uint64,
 		if err != nil {
 			return err
 		}
-		LendIdToBorrowIdMapping, _ := k.GetLendIdToBorrowIdMapping(ctx, borrowPos.LendingID)
-		LendIdToBorrowIdMapping.BorrowingID = append(LendIdToBorrowIdMapping.BorrowingID, borrowPos.ID)
-		lendIdToBorrowIdMapping := types.LendIdToBorrowIdMapping{
-			LendingID:   borrowPos.LendingID,
-			BorrowingID: LendIdToBorrowIdMapping.BorrowingID,
+		err = k.UpdateLendIdToBorrowIdMapping(ctx, borrowPos.LendingID, borrowPos.ID, true)
+		if err != nil {
+			return err
 		}
-		k.SetLendIdToBorrowIdMapping(ctx, lendIdToBorrowIdMapping)
 
 	} else {
 		reservedAmount := k.GetReserveFunds(ctx, loan.Denom)
@@ -561,13 +558,10 @@ func (k Keeper) BorrowAsset(ctx sdk.Context, addr string, lendId, pairId uint64,
 			if err != nil {
 				return err
 			}
-			LendIdToBorrowIdMapping, _ := k.GetLendIdToBorrowIdMapping(ctx, borrowPos.LendingID)
-			LendIdToBorrowIdMapping.BorrowingID = append(LendIdToBorrowIdMapping.BorrowingID, borrowPos.ID)
-			lendIdToBorrowIdMapping := types.LendIdToBorrowIdMapping{
-				LendingID:   borrowPos.LendingID,
-				BorrowingID: LendIdToBorrowIdMapping.BorrowingID,
+			err = k.UpdateLendIdToBorrowIdMapping(ctx, borrowPos.LendingID, borrowPos.ID, true)
+			if err != nil {
+				return err
 			}
-			k.SetLendIdToBorrowIdMapping(ctx, lendIdToBorrowIdMapping)
 
 		} else if secondBridgedAssetQty.LT(secondBridgedAssetBal) {
 			// take u/Tokens from the user
@@ -622,13 +616,11 @@ func (k Keeper) BorrowAsset(ctx sdk.Context, addr string, lendId, pairId uint64,
 			if err != nil {
 				return err
 			}
-			LendIdToBorrowIdMapping, _ := k.GetLendIdToBorrowIdMapping(ctx, borrowPos.LendingID)
-			LendIdToBorrowIdMapping.BorrowingID = append(LendIdToBorrowIdMapping.BorrowingID, borrowPos.ID)
-			lendIdToBorrowIdMapping := types.LendIdToBorrowIdMapping{
-				LendingID:   borrowPos.LendingID,
-				BorrowingID: LendIdToBorrowIdMapping.BorrowingID,
+
+			err = k.UpdateLendIdToBorrowIdMapping(ctx, borrowPos.LendingID, borrowPos.ID, true)
+			if err != nil {
+				return err
 			}
-			k.SetLendIdToBorrowIdMapping(ctx, lendIdToBorrowIdMapping)
 
 		} else {
 			return types.ErrBorrowingPoolInsufficient
@@ -750,6 +742,10 @@ func (k Keeper) CloseBorrow(ctx sdk.Context, borrowerAddr string, borrowId uint6
 		return err
 	}
 	k.DeleteBorrowForAddressByPair(ctx, addr, borrowPos.PairID)
+	err = k.UpdateLendIdToBorrowIdMapping(ctx, borrowPos.LendingID, borrowPos.ID, false)
+	if err != nil {
+		return err
+	}
 	k.DeleteBorrow(ctx, borrowId)
 
 	return nil
