@@ -50,4 +50,6 @@ var (
 	ErrBorrowingPoolInsufficient       = sdkerrors.Register(ModuleName, 1139, "borrowing pool insufficient")
 	ErrBorrowNotFound                  = sdkerrors.Register(ModuleName, 1140, "Borrow Position not found")
 	ErrBorrowingPositionOpen           = sdkerrors.Register(ModuleName, 1141, "borrowing position open")
+	ErrAssetStatsNotFound              = sdkerrors.Register(ModuleName, 1142, "Asset Stats Not Found")
+	ErrorDuplicateAssetRatesStats      = sdkerrors.Register(ModuleName, 1143, "Dublicate Asset Rates Stats")
 )

@@ -355,3 +355,59 @@ func (q queryServer) QueryAllBorrowByOwner(c context.Context, req *types.QueryAl
 		BorrowIds: borrowIds,
 	}, nil
 }
+
+func (q queryServer) QueryAssetRatesStats(c context.Context, req *types.QueryAssetRatesStatsRequest) (*types.QueryAssetRatesStatsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request cannot be empty")
+	}
+
+	var (
+		items []types.AssetRatesStats
+		ctx   = sdk.UnwrapSDKContext(c)
+	)
+
+	pagination, err := query.FilteredPaginate(
+		prefix.NewStore(q.Store(ctx), types.AssetRatesStatsKeyPrefix),
+		req.Pagination,
+		func(_, value []byte, accumulate bool) (bool, error) {
+			var item types.AssetRatesStats
+			if err := q.cdc.Unmarshal(value, &item); err != nil {
+				return false, err
+			}
+
+			if accumulate {
+				items = append(items, item)
+			}
+
+			return true, nil
+		},
+	)
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryAssetRatesStatsResponse{
+		AssetRatesStats: items,
+		Pagination:      pagination,
+	}, nil
+}
+
+func (q queryServer) QueryAssetRatesStat(c context.Context, req *types.QueryAssetRatesStatRequest) (*types.QueryAssetRatesStatResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request cannot be empty")
+	}
+
+	var (
+		ctx = sdk.UnwrapSDKContext(c)
+	)
+
+	item, found := q.GetAssetRatesStats(ctx, req.Id)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "asset does not exist for id %d", req.Id)
+	}
+
+	return &types.QueryAssetRatesStatResponse{
+		AssetRatesStat: item,
+	}, nil
+}

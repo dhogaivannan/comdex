@@ -178,6 +178,7 @@ var (
 				lendclient.UpdateLendPairsHandler,
 				lendclient.AddPoolHandler,
 				lendclient.AddAssetToPairHandler,
+				lendclient.AddAssetRatesStatsHandler,
 				collectorclient.AddLookupTableParamsHandlers,
 				collectorclient.AddAuctionControlParamsHandler,
 				paramsclient.ProposalHandler,

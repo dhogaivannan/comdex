@@ -5,10 +5,11 @@ import (
 )
 
 var (
-	ProposalAddLendPairs    = "ProposalAddLendPairs"
-	ProposalUpdateLenddPair = "ProposalUpdateLenddPair"
-	ProposalAddPool         = "ProposalAddPool"
-	ProposalAddAssetToPair  = "ProposalAddAssetToPair"
+	ProposalAddLendPairs       = "ProposalAddLendPairs"
+	ProposalUpdateLenddPair    = "ProposalUpdateLenddPair"
+	ProposalAddPool            = "ProposalAddPool"
+	ProposalAddAssetToPair     = "ProposalAddAssetToPair"
+	ProposalAddAssetRatesStats = "ProposalAddAssetRatesStats"
 )
 
 func init() {
@@ -25,6 +26,9 @@ func init() {
 	govtypes.RegisterProposalType(ProposalAddAssetToPair)
 	govtypes.RegisterProposalTypeCodec(&AddAssetToPairProposal{}, "comdex/AddAssetToPairProposal")
 
+	govtypes.RegisterProposalType(ProposalAddAssetRatesStats)
+	govtypes.RegisterProposalTypeCodec(&AddAssetRatesStats{}, "comdex/AddAssetRatesStats")
+
 }
 
 var (
@@ -32,6 +36,7 @@ var (
 	_ govtypes.Content = &UpdatePairProposal{}
 	_ govtypes.Content = &AddPoolsProposal{}
 	_ govtypes.Content = &AddAssetToPairProposal{}
+	_ govtypes.Content = &AddAssetRatesStats{}
 )
 
 func NewAddLendPairsProposal(title, description string, pairs []Extended_Pair) govtypes.Content {
@@ -147,6 +152,37 @@ func (p *AddAssetToPairProposal) ValidateBasic() error {
 	pool := p.AssetToPairMapping
 	if err := pool.Validate(); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func NewAddAssetRatesStats(title, description string, AssetRatesStats []AssetRatesStats) govtypes.Content {
+	return &AddAssetRatesStats{
+		Title:           title,
+		Description:     description,
+		AssetRatesStats: AssetRatesStats,
+	}
+}
+
+func (p *AddAssetRatesStats) ProposalRoute() string {
+	return RouterKey
+}
+
+func (p *AddAssetRatesStats) ProposalType() string {
+	return ProposalAddAssetRatesStats
+}
+
+func (p *AddAssetRatesStats) ValidateBasic() error {
+	err := govtypes.ValidateAbstract(p)
+	if err != nil {
+		return err
+	}
+
+	for _, assetRatesStats := range p.AssetRatesStats {
+		if err := assetRatesStats.Validate(); err != nil {
+			return err
+		}
 	}
 
 	return nil

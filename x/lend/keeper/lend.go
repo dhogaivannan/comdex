@@ -497,3 +497,28 @@ func (k *Keeper) DeleteLendIdToBorrowIdMapping(ctx sdk.Context, lendingId uint64
 
 	store.Delete(key)
 }
+
+func (k *Keeper) SetAssetStatsByPoolIdAndAssetId(ctx sdk.Context, assetID, poolId uint64, AssetStats types.AssetStats) {
+	var (
+		store = k.Store(ctx)
+		key   = types.SetAssetStatsByPoolIdAndAssetId(assetID, poolId)
+		value = k.cdc.MustMarshal(&AssetStats)
+	)
+
+	store.Set(key, value)
+}
+
+func (k *Keeper) GetAssetStatsByPoolIdAndAssetId(ctx sdk.Context, assetID, poolId uint64) (AssetStats types.AssetStats, found bool) {
+	var (
+		store = k.Store(ctx)
+		key   = types.SetAssetStatsByPoolIdAndAssetId(assetID, poolId)
+		value = store.Get(key)
+	)
+
+	if value == nil {
+		return AssetStats, false
+	}
+
+	k.cdc.MustUnmarshal(value, &AssetStats)
+	return AssetStats, true
+}

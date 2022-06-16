@@ -21,3 +21,7 @@ func (m *Pool) Validate() error {
 func (m *AssetToPairMapping) Validate() error {
 	return nil
 }
+
+func (m *AssetRatesStats) Validate() error {
+	return nil
+}

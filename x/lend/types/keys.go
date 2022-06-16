@@ -46,13 +46,15 @@ var (
 	BorrowHistoryIdPrefix = []byte{0x25}
 	BorrowPairKeyPrefix   = []byte{0x26}
 
-	AssetToPairMappingKeyPrefix       = []byte{0x20}
-	WhitelistedAssetForDenomKeyPrefix = []byte{0x21}
-	LendForAddressByAssetKeyPrefix    = []byte{0x22}
-	UserLendsForAddressKeyPrefix      = []byte{0x23}
-	BorrowForAddressByPairKeyPrefix   = []byte{0x24}
-	UserBorrowsForAddressKeyPrefix    = []byte{0x27}
-	LendIdToBorrowIdMappingKeyPrefix  = []byte{0x28}
+	AssetToPairMappingKeyPrefix           = []byte{0x20}
+	WhitelistedAssetForDenomKeyPrefix     = []byte{0x21}
+	LendForAddressByAssetKeyPrefix        = []byte{0x22}
+	UserLendsForAddressKeyPrefix          = []byte{0x23}
+	BorrowForAddressByPairKeyPrefix       = []byte{0x24}
+	UserBorrowsForAddressKeyPrefix        = []byte{0x27}
+	LendIdToBorrowIdMappingKeyPrefix      = []byte{0x28}
+	AssetStatsByPoolIdAndAssetIdKeyPrefix = []byte{0x29}
+	AssetRatesStatsKeyPrefix              = []byte{0x30}
 )
 
 func AssetKey(id uint64) []byte {
@@ -117,6 +119,10 @@ func LendPairKey(id uint64) []byte {
 	return append(LendPairKeyPrefix, sdk.Uint64ToBigEndian(id)...)
 }
 
+func AssetRatesStatsKey(id uint64) []byte {
+	return append(AssetRatesStatsKeyPrefix, sdk.Uint64ToBigEndian(id)...)
+}
+
 func BorrowUserKey(id uint64) []byte {
 	return append(BorrowPairKeyPrefix, sdk.Uint64ToBigEndian(id)...)
 }
@@ -153,4 +159,9 @@ func UserBorrowsForAddressKey(address string) []byte {
 
 func LendIdToBorrowIdMappingKey(id uint64) []byte {
 	return append(LendIdToBorrowIdMappingKeyPrefix, sdk.Uint64ToBigEndian(id)...)
+}
+
+func SetAssetStatsByPoolIdAndAssetId(assetID, pairID uint64) []byte {
+	v := append(AssetStatsByPoolIdAndAssetIdKeyPrefix, sdk.Uint64ToBigEndian(assetID)...)
+	return append(v, sdk.Uint64ToBigEndian(pairID)...)
 }

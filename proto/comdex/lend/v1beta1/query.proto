@@ -78,6 +78,29 @@ message QueryPairResponse {
   [ (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"extended_pair\"" ];
 }
 
+message QueryAssetRatesStatsRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1
+  [ (gogoproto.moretags) = "yaml:\"pagination\"" ];
+}
+
+message QueryAssetRatesStatsResponse {
+  repeated AssetRatesStats AssetRatesStats = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"asset_rates_stats\""
+  ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2
+  [ (gogoproto.moretags) = "yaml:\"pagination\"" ];
+}
+
+message QueryAssetRatesStatRequest {
+  uint64 id = 1;
+}
+
+message QueryAssetRatesStatResponse {
+  AssetRatesStats AssetRatesStat = 1
+  [ (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"asset_rates_stat\"" ];
+}
+
 message QueryPoolsRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 1
   [ (gogoproto.moretags) = "yaml:\"pagination\"" ];
@@ -179,6 +202,13 @@ service Query {
   }
   rpc QueryPair(QueryPairRequest) returns (QueryPairResponse) {
     option (google.api.http).get = "/comdex/lend/v1beta1/pairs/{id}";
+  }
+
+  rpc QueryAssetRatesStats(QueryAssetRatesStatsRequest) returns (QueryAssetRatesStatsResponse) {
+    option (google.api.http).get = "/comdex/lend/v1beta1/asset_rates_stats";
+  }
+  rpc QueryAssetRatesStat(QueryAssetRatesStatRequest) returns (QueryAssetRatesStatResponse) {
+    option (google.api.http).get = "/comdex/lend/v1beta1/asset_rates_stats/{id}";
   }
 
   rpc QueryPools(QueryPoolsRequest) returns (QueryPoolsResponse) {

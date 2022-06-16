@@ -754,7 +754,6 @@ func (k Keeper) CloseBorrow(ctx sdk.Context, borrowerAddr string, borrowId uint6
 func (k Keeper) FundModAcc(ctx sdk.Context, moduleName string, assetId uint64, lenderAddr sdk.AccAddress, payment sdk.Coin) error {
 
 	loanTokens := sdk.NewCoins(payment)
-	fmt.Println("loanTokens.....", loanTokens)
 	if err := k.bank.SendCoinsFromAccountToModule(ctx, lenderAddr, moduleName, loanTokens); err != nil {
 		return err
 	}
@@ -768,19 +767,16 @@ func (k Keeper) FundModAcc(ctx sdk.Context, moduleName string, assetId uint64, l
 	if err != nil {
 		return err
 	}
-	fmt.Println("aaaaa......")
 	err = k.MintCoin(ctx, moduleName, cToken)
 	if err != nil {
 		return err
 	}
-	fmt.Println("vvvvv......")
 
 	currentCollateral := k.GetCollateralAmount(ctx, lenderAddr, payment.Denom)
 	if err := k.setCollateralAmount(ctx, lenderAddr, currentCollateral.Add(payment)); err != nil {
 		return err
 	}
 
-	fmt.Println("wwwww......")
 	return nil
 }
 

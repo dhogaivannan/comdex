@@ -135,3 +135,55 @@ func (k *Keeper) GetLendPairID(ctx sdk.Context) uint64 {
 
 	return count.GetValue()
 }
+
+func (k *Keeper) AddAssetRatesStats(ctx sdk.Context, records ...types.AssetRatesStats) error {
+
+	for _, msg := range records {
+
+		_, found := k.GetAssetRatesStats(ctx, msg.AssetId)
+		if found {
+			return types.ErrorDuplicateAssetRatesStats
+		}
+
+		var (
+			assetRatesStats = types.AssetRatesStats{
+				AssetId:      msg.AssetId,
+				UOptimal:     msg.UOptimal,
+				Base:         msg.Base,
+				Slope1:       msg.Slope1,
+				Slope2:       msg.Slope2,
+				StableBase:   msg.StableBase,
+				StableSlope1: msg.StableSlope1,
+				StableSlope2: msg.StableSlope2,
+			}
+		)
+
+		k.SetAssetRatesStats(ctx, assetRatesStats)
+	}
+	return nil
+}
+
+func (k *Keeper) SetAssetRatesStats(ctx sdk.Context, assetRatesStats types.AssetRatesStats) {
+	var (
+		store = k.Store(ctx)
+		key   = types.AssetRatesStatsKey(assetRatesStats.AssetId)
+		value = k.cdc.MustMarshal(&assetRatesStats)
+	)
+
+	store.Set(key, value)
+}
+
+func (k *Keeper) GetAssetRatesStats(ctx sdk.Context, assetId uint64) (assetRatesStats types.AssetRatesStats, found bool) {
+	var (
+		store = k.Store(ctx)
+		key   = types.AssetRatesStatsKey(assetId)
+		value = store.Get(key)
+	)
+
+	if value == nil {
+		return assetRatesStats, false
+	}
+
+	k.cdc.MustUnmarshal(value, &assetRatesStats)
+	return assetRatesStats, true
+}

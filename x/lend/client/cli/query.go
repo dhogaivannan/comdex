@@ -41,6 +41,8 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		queryBorrow(),
 		queryBorrows(),
 		QueryAllBorrowsByOwner(),
+		queryAssetRatesStat(),
+		queryAssetRatesStats(),
 	)
 
 	return cmd
@@ -471,5 +473,79 @@ func QueryAllBorrowsByOwner() *cobra.Command {
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+func queryAssetRatesStat() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "asset-rates-stat [asset-id]",
+		Short: "Query asset rates stat by asset-id",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			id, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(ctx)
+
+			res, err := queryClient.QueryAssetRatesStat(
+				context.Background(),
+				&types.QueryAssetRatesStatRequest{
+					Id: id,
+				},
+			)
+			if err != nil {
+				return err
+			}
+
+			return ctx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func queryAssetRatesStats() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "asset-rates-stats",
+		Short: "Query asset rates stats",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			pagination, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(ctx)
+
+			res, err := queryClient.QueryAssetRatesStats(
+				context.Background(),
+				&types.QueryAssetRatesStatsRequest{
+					Pagination: pagination,
+				},
+			)
+			if err != nil {
+				return err
+			}
+
+			return ctx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	flags.AddPaginationFlagsToCmd(cmd, "asset-rates-stats")
+
 	return cmd
 }

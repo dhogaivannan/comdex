@@ -440,10 +440,6 @@ func CmdUpdateLendPairProposal() *cobra.Command {
 	cmd.Flags().String(cli.FlagTitle, "", "title of proposal")
 	cmd.Flags().String(cli.FlagDescription, "", "description of proposal")
 	cmd.Flags().String(cli.FlagDeposit, "", "deposit of proposal")
-	cmd.Flags().String(flagbaseborrowrateasset1, "", "baseborrowrateasset1")
-	cmd.Flags().String(flagbaseborrowrateasset2, "", "baseborrowrateasset2")
-	cmd.Flags().String(flagbaselendrateasset1, "", "baselendrateasset1")
-	cmd.Flags().String(flagbaselendrateasset2, "", "baselendrateasset2")
 
 	_ = cmd.MarkFlagRequired(cli.FlagTitle)
 	_ = cmd.MarkFlagRequired(cli.FlagDescription)
@@ -599,6 +595,119 @@ func CmdAddAssetToPairProposal() *cobra.Command {
 			}
 
 			content := types.NewAddAssetToPairProposal(title, description, assetToPairMapping)
+
+			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			if err != nil {
+				return err
+			}
+
+			if err = msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().String(cli.FlagTitle, "", "title of proposal")
+	cmd.Flags().String(cli.FlagDescription, "", "description of proposal")
+	cmd.Flags().String(cli.FlagDeposit, "", "deposit of proposal")
+	_ = cmd.MarkFlagRequired(cli.FlagTitle)
+	_ = cmd.MarkFlagRequired(cli.FlagDescription)
+
+	return cmd
+}
+
+func CmdAddWNewAssetRatesStatsProposal() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "add-asset-rates-stats [asset_id] [u_optimal] [base] [slope1] [slope2] [stable_base] [stable_slope1] [stable_slope2]",
+		Short: "Add lend asset pairs",
+		Args:  cobra.ExactArgs(8),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			assetId, err := ParseUint64SliceFromString(args[0], ",")
+			if err != nil {
+				return err
+			}
+
+			uOptimal, err := ParseStringFromString(args[1], ",")
+			if err != nil {
+				return err
+			}
+			base, err := ParseStringFromString(args[2], ",")
+			if err != nil {
+				return err
+			}
+			slope1, err := ParseStringFromString(args[3], ",")
+			if err != nil {
+				return err
+			}
+			slope2, err := ParseStringFromString(args[4], ",")
+			if err != nil {
+				return err
+			}
+			stableBase, err := ParseStringFromString(args[5], ",")
+			if err != nil {
+				return err
+			}
+			stableSlope1, err := ParseStringFromString(args[6], ",")
+			if err != nil {
+				return err
+			}
+			stableSlope2, err := ParseStringFromString(args[7], ",")
+			if err != nil {
+				return err
+			}
+
+			var assetRatesStats []types.AssetRatesStats
+			for i := range assetId {
+				newUOptimal, _ := sdk.NewDecFromStr(uOptimal[i])
+				newBase, _ := sdk.NewDecFromStr(base[i])
+				newSlope1, _ := sdk.NewDecFromStr(slope1[i])
+				newSlope2, _ := sdk.NewDecFromStr(slope2[i])
+				newStableBase, _ := sdk.NewDecFromStr(stableBase[i])
+				newStableSlope1, _ := sdk.NewDecFromStr(stableSlope1[i])
+				newStableSlope2, _ := sdk.NewDecFromStr(stableSlope2[i])
+
+				assetRatesStats = append(assetRatesStats, types.AssetRatesStats{
+					AssetId:      assetId[i],
+					UOptimal:     newUOptimal,
+					Base:         newBase,
+					Slope1:       newSlope1,
+					Slope2:       newSlope2,
+					StableBase:   newStableBase,
+					StableSlope1: newStableSlope1,
+					StableSlope2: newStableSlope2,
+				},
+				)
+			}
+
+			title, err := cmd.Flags().GetString(cli.FlagTitle)
+			if err != nil {
+				return err
+			}
+
+			description, err := cmd.Flags().GetString(cli.FlagDescription)
+			if err != nil {
+				return err
+			}
+
+			from := clientCtx.GetFromAddress()
+
+			depositStr, err := cmd.Flags().GetString(cli.FlagDeposit)
+			if err != nil {
+				return err
+			}
+			deposit, err := sdk.ParseCoinsNormalized(depositStr)
+			if err != nil {
+				return err
+			}
+
+			content := types.NewAddAssetRatesStats(title, description, assetRatesStats)
 
 			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
