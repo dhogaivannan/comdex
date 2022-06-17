@@ -141,21 +141,6 @@ message AssetDataPoolMapping{
   bool is_bridged = 2 [
     (gogoproto.moretags) = "yaml:\"is_bridged\""
   ];
-  string lend_rate = 3 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable) = false,
-    (gogoproto.moretags) = "yaml:\"lend_rate\""
-  ];
-  string borrow_rate = 4 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable) = false,
-    (gogoproto.moretags) = "yaml:\"borrow_rate\""
-  ];
-  string stable_borrow_rate = 5 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable) = false,
-    (gogoproto.moretags) = "yaml:\"stable_borrow_rate\""
-  ];
 }
 
 message Extended_Pair {
@@ -169,11 +154,6 @@ message Extended_Pair {
   uint64 asset_out_pool_id = 5 [
     (gogoproto.customname) = "AssetOutPoolId",
     (gogoproto.moretags) = "yaml:\"asset_out_pool_id\""
-  ];
-  string liquidation_ratio = 6 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable)   = false,
-    (gogoproto.moretags)   = "yaml:\"liquidation_ratio\""
   ];
 }
 
@@ -278,6 +258,26 @@ message AssetRatesStats{
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"stable_slope2\""
+  ];
+  string ltv = 9 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"ltv\""
+  ];
+  string liquidation_threshold = 10 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"liquidation_threshold\""
+  ];
+  string liquidation_penalty = 11 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"liquidation_penalty\""
+  ];
+  string reserve_factor = 12 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"reserve_factor\""
   ];
 
 }

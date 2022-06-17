@@ -414,7 +414,8 @@ func (k Keeper) BorrowAsset(ctx sdk.Context, addr string, lendId, pairId uint64,
 	assetIn, _ := k.GetAsset(ctx, lendPos.AssetId)
 	assetOut, _ := k.GetAsset(ctx, pair.AssetOut)
 
-	err := k.VerifyCollaterlizationRatio(ctx, lendPos.UpdatedAmountIn, assetIn, loan.Amount, assetOut, pair.LiquidationRatio)
+	assetRatesStats, _ := k.GetAssetRatesStats(ctx, pair.AssetOut)
+	err := k.VerifyCollaterlizationRatio(ctx, lendPos.UpdatedAmountIn, assetIn, loan.Amount, assetOut, assetRatesStats.LiquidationThreshold)
 	if err != nil {
 		return err
 	}
@@ -447,12 +448,10 @@ func (k Keeper) BorrowAsset(ctx sdk.Context, addr string, lendId, pairId uint64,
 
 		var StableBorrowRate sdk.Dec
 		if IsStableBorrow {
-			for _, v := range AssetOutPool.AssetData {
-				if v.AssetId == pair.AssetOut {
-					StableBorrowRate = v.StableBorrowRate
-				}
+			StableBorrowRate, err = k.GetBorrowAPYByAssetId(ctx, AssetOutPool.PoolId, pair.AssetOut, IsStableBorrow)
+			if err != nil {
+				return err
 			}
-
 		} else {
 			StableBorrowRate = sdk.ZeroDec()
 		}
@@ -529,12 +528,10 @@ func (k Keeper) BorrowAsset(ctx sdk.Context, addr string, lendId, pairId uint64,
 
 			var StableBorrowRate sdk.Dec
 			if IsStableBorrow {
-				for _, v := range AssetOutPool.AssetData {
-					if v.AssetId == pair.AssetOut {
-						StableBorrowRate = v.StableBorrowRate
-					}
+				StableBorrowRate, err = k.GetBorrowAPYByAssetId(ctx, AssetOutPool.PoolId, pair.AssetOut, IsStableBorrow)
+				if err != nil {
+					return err
 				}
-
 			} else {
 				StableBorrowRate = sdk.ZeroDec()
 			}
@@ -587,12 +584,10 @@ func (k Keeper) BorrowAsset(ctx sdk.Context, addr string, lendId, pairId uint64,
 
 			var StableBorrowRate sdk.Dec
 			if IsStableBorrow {
-				for _, v := range AssetOutPool.AssetData {
-					if v.AssetId == pair.AssetOut {
-						StableBorrowRate = v.StableBorrowRate
-					}
+				StableBorrowRate, err = k.GetBorrowAPYByAssetId(ctx, AssetOutPool.PoolId, pair.AssetOut, IsStableBorrow)
+				if err != nil {
+					return err
 				}
-
 			} else {
 				StableBorrowRate = sdk.ZeroDec()
 			}
@@ -698,7 +693,9 @@ func (k Keeper) DrawAsset(ctx sdk.Context, borrowId uint64, borrowerAddr string,
 		borrowPos.UpdatedAmountOut = borrowPos.UpdatedAmountOut.Add(payment.Amount)
 		assetIn, _ := k.GetAsset(ctx, lendPos.AssetId)
 		assetOut, _ := k.GetAsset(ctx, pair.AssetOut)
-		err := k.VerifyCollaterlizationRatio(ctx, lendPos.UpdatedAmountIn, assetIn, borrowPos.UpdatedAmountOut, assetOut, pair.LiquidationRatio)
+
+		assetRatesStats, _ := k.GetAssetRatesStats(ctx, pair.AssetOut)
+		err := k.VerifyCollaterlizationRatio(ctx, lendPos.UpdatedAmountIn, assetIn, borrowPos.UpdatedAmountOut, assetOut, assetRatesStats.LiquidationThreshold)
 		if err != nil {
 			return err
 		}

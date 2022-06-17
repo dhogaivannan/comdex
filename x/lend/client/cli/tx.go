@@ -318,21 +318,14 @@ func CmdAddWNewLendPairsProposal() *cobra.Command {
 				return err
 			}
 
-			liquidationRatio, err := ParseStringFromString(args[4], ",")
-			if err != nil {
-				return err
-			}
-
 			var pairs []types.Extended_Pair
 			for i := range assetIn {
-				newLiquidationRatio, _ := sdk.NewDecFromStr(liquidationRatio[i])
 				interPool := ParseBoolFromString(isInterPool[i])
 				pairs = append(pairs, types.Extended_Pair{
-					AssetIn:          assetIn[i],
-					AssetOut:         assetOut[i],
-					IsInterPool:      interPool,
-					AssetOutPoolId:   assetOutPoolId[i],
-					LiquidationRatio: newLiquidationRatio,
+					AssetIn:        assetIn[i],
+					AssetOut:       assetOut[i],
+					IsInterPool:    interPool,
+					AssetOutPoolId: assetOutPoolId[i],
 				})
 			}
 
@@ -485,10 +478,8 @@ func CmdAddPoolProposal() *cobra.Command {
 			for i := range assetId {
 				bridged := ParseBoolFromString(isBridgedAsset[i])
 				assetData = append(assetData, types.AssetDataPoolMapping{
-					AssetId:    assetId[i],
-					IsBridged:  bridged,
-					LendRate:   sdk.ZeroDec(),
-					BorrowRate: sdk.ZeroDec(),
+					AssetId:   assetId[i],
+					IsBridged: bridged,
 				})
 			}
 			pool = types.Pool{
@@ -620,9 +611,9 @@ func CmdAddAssetToPairProposal() *cobra.Command {
 
 func CmdAddWNewAssetRatesStatsProposal() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "add-asset-rates-stats [asset_id] [u_optimal] [base] [slope1] [slope2] [stable_base] [stable_slope1] [stable_slope2]",
+		Use:   "add-asset-rates-stats [asset_id] [u_optimal] [base] [slope1] [slope2] [stable_base] [stable_slope1] [stable_slope2] [ltv] [liquidation_threshold] [liquidation_penalty] [reserve_factor]",
 		Short: "Add lend asset pairs",
-		Args:  cobra.ExactArgs(8),
+		Args:  cobra.ExactArgs(12),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -662,6 +653,22 @@ func CmdAddWNewAssetRatesStatsProposal() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			ltv, err := ParseStringFromString(args[8], ",")
+			if err != nil {
+				return err
+			}
+			liquidationThreshold, err := ParseStringFromString(args[9], ",")
+			if err != nil {
+				return err
+			}
+			liquidationPenalty, err := ParseStringFromString(args[10], ",")
+			if err != nil {
+				return err
+			}
+			reserveFactor, err := ParseStringFromString(args[11], ",")
+			if err != nil {
+				return err
+			}
 
 			var assetRatesStats []types.AssetRatesStats
 			for i := range assetId {
@@ -672,16 +679,24 @@ func CmdAddWNewAssetRatesStatsProposal() *cobra.Command {
 				newStableBase, _ := sdk.NewDecFromStr(stableBase[i])
 				newStableSlope1, _ := sdk.NewDecFromStr(stableSlope1[i])
 				newStableSlope2, _ := sdk.NewDecFromStr(stableSlope2[i])
+				newLTV, _ := sdk.NewDecFromStr(ltv[i])
+				newLiquidationThreshold, _ := sdk.NewDecFromStr(liquidationThreshold[i])
+				newLiquidationPenalty, _ := sdk.NewDecFromStr(liquidationPenalty[i])
+				newReserveFactor, _ := sdk.NewDecFromStr(reserveFactor[i])
 
 				assetRatesStats = append(assetRatesStats, types.AssetRatesStats{
-					AssetId:      assetId[i],
-					UOptimal:     newUOptimal,
-					Base:         newBase,
-					Slope1:       newSlope1,
-					Slope2:       newSlope2,
-					StableBase:   newStableBase,
-					StableSlope1: newStableSlope1,
-					StableSlope2: newStableSlope2,
+					AssetId:              assetId[i],
+					UOptimal:             newUOptimal,
+					Base:                 newBase,
+					Slope1:               newSlope1,
+					Slope2:               newSlope2,
+					StableBase:           newStableBase,
+					StableSlope1:         newStableSlope1,
+					StableSlope2:         newStableSlope2,
+					Ltv:                  newLTV,
+					LiquidationThreshold: newLiquidationThreshold,
+					LiquidationPenalty:   newLiquidationPenalty,
+					ReserveFactor:        newReserveFactor,
 				},
 				)
 			}

@@ -18,12 +18,11 @@ func (k *Keeper) AddLendPairsRecords(ctx sdk.Context, records ...types.Extended_
 		var (
 			id   = k.GetLendPairID(ctx)
 			pair = types.Extended_Pair{
-				Id:               id + 1,
-				AssetIn:          msg.AssetIn,
-				AssetOut:         msg.AssetOut,
-				IsInterPool:      msg.IsInterPool,
-				AssetOutPoolId:   msg.AssetOutPoolId,
-				LiquidationRatio: msg.LiquidationRatio,
+				Id:             id + 1,
+				AssetIn:        msg.AssetIn,
+				AssetOut:       msg.AssetOut,
+				IsInterPool:    msg.IsInterPool,
+				AssetOutPoolId: msg.AssetOutPoolId,
 			}
 		)
 
@@ -147,14 +146,18 @@ func (k *Keeper) AddAssetRatesStats(ctx sdk.Context, records ...types.AssetRates
 
 		var (
 			assetRatesStats = types.AssetRatesStats{
-				AssetId:      msg.AssetId,
-				UOptimal:     msg.UOptimal,
-				Base:         msg.Base,
-				Slope1:       msg.Slope1,
-				Slope2:       msg.Slope2,
-				StableBase:   msg.StableBase,
-				StableSlope1: msg.StableSlope1,
-				StableSlope2: msg.StableSlope2,
+				AssetId:              msg.AssetId,
+				UOptimal:             msg.UOptimal,
+				Base:                 msg.Base,
+				Slope1:               msg.Slope1,
+				Slope2:               msg.Slope2,
+				StableBase:           msg.StableBase,
+				StableSlope1:         msg.StableSlope1,
+				StableSlope2:         msg.StableSlope2,
+				Ltv:                  msg.Ltv,
+				LiquidationThreshold: msg.LiquidationThreshold,
+				LiquidationPenalty:   msg.LiquidationPenalty,
+				ReserveFactor:        msg.ReserveFactor,
 			}
 		)
 
