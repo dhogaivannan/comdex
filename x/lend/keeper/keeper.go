@@ -130,7 +130,10 @@ func (k Keeper) LendAsset(ctx sdk.Context, lenderAddr string, AssetId uint64, Am
 	if err != nil {
 		return err
 	}
-
+	err = k.UpdateLendIdsMapping(ctx, lendPos.ID, true)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -357,6 +360,10 @@ func (k Keeper) CloseLend(ctx sdk.Context, addr string, lendId uint64) error {
 	if err != nil {
 		return err
 	}
+	err = k.UpdateLendIdsMapping(ctx, lendPos.ID, false)
+	if err != nil {
+		return err
+	}
 	k.DeleteLend(ctx, lendPos.ID)
 	return nil
 }
@@ -447,12 +454,17 @@ func (k Keeper) BorrowAsset(ctx sdk.Context, addr string, lendId, pairId uint64,
 		}
 
 		var StableBorrowRate sdk.Dec
-		if IsStableBorrow {
-			StableBorrowRate, err = k.GetBorrowAPYByAssetId(ctx, AssetOutPool.PoolId, pair.AssetOut, IsStableBorrow)
-			if err != nil {
-				return err
+		if assetRatesStats.EnableStableBorrow {
+			if IsStableBorrow {
+				StableBorrowRate, err = k.GetBorrowAPYByAssetId(ctx, AssetOutPool.PoolId, pair.AssetOut, IsStableBorrow)
+				if err != nil {
+					return err
+				}
+			} else {
+				StableBorrowRate = sdk.ZeroDec()
 			}
 		} else {
+			IsStableBorrow = false
 			StableBorrowRate = sdk.ZeroDec()
 		}
 
@@ -527,12 +539,17 @@ func (k Keeper) BorrowAsset(ctx sdk.Context, addr string, lendId, pairId uint64,
 			AmountOut := loan
 
 			var StableBorrowRate sdk.Dec
-			if IsStableBorrow {
-				StableBorrowRate, err = k.GetBorrowAPYByAssetId(ctx, AssetOutPool.PoolId, pair.AssetOut, IsStableBorrow)
-				if err != nil {
-					return err
+			if assetRatesStats.EnableStableBorrow {
+				if IsStableBorrow {
+					StableBorrowRate, err = k.GetBorrowAPYByAssetId(ctx, AssetOutPool.PoolId, pair.AssetOut, IsStableBorrow)
+					if err != nil {
+						return err
+					}
+				} else {
+					StableBorrowRate = sdk.ZeroDec()
 				}
 			} else {
+				IsStableBorrow = false
 				StableBorrowRate = sdk.ZeroDec()
 			}
 
@@ -583,12 +600,17 @@ func (k Keeper) BorrowAsset(ctx sdk.Context, addr string, lendId, pairId uint64,
 			AmountOut := loan
 
 			var StableBorrowRate sdk.Dec
-			if IsStableBorrow {
-				StableBorrowRate, err = k.GetBorrowAPYByAssetId(ctx, AssetOutPool.PoolId, pair.AssetOut, IsStableBorrow)
-				if err != nil {
-					return err
+			if assetRatesStats.EnableStableBorrow {
+				if IsStableBorrow {
+					StableBorrowRate, err = k.GetBorrowAPYByAssetId(ctx, AssetOutPool.PoolId, pair.AssetOut, IsStableBorrow)
+					if err != nil {
+						return err
+					}
+				} else {
+					StableBorrowRate = sdk.ZeroDec()
 				}
 			} else {
+				IsStableBorrow = false
 				StableBorrowRate = sdk.ZeroDec()
 			}
 

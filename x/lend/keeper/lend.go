@@ -226,7 +226,7 @@ func (k *Keeper) DeleteLendForAddressByAsset(ctx sdk.Context, address sdk.AccAdd
 func (k *Keeper) UpdateUserLendIdMapping(
 	ctx sdk.Context,
 	lendOwner string,
-	vaultId uint64,
+	lendId uint64,
 	isInsert bool,
 ) error {
 
@@ -242,10 +242,10 @@ func (k *Keeper) UpdateUserLendIdMapping(
 	}
 
 	if isInsert {
-		userVaults.LendIds = append(userVaults.LendIds, vaultId)
+		userVaults.LendIds = append(userVaults.LendIds, lendId)
 	} else {
 		for index, id := range userVaults.LendIds {
-			if id == vaultId {
+			if id == lendId {
 				userVaults.LendIds = append(userVaults.LendIds[:index], userVaults.LendIds[index+1:]...)
 				break
 			}
@@ -378,7 +378,7 @@ func (k *Keeper) DeleteBorrowForAddressByPair(ctx sdk.Context, address sdk.AccAd
 func (k *Keeper) UpdateUserBorrowIdMapping(
 	ctx sdk.Context,
 	lendOwner string,
-	vaultId uint64,
+	borrowId uint64,
 	isInsert bool,
 ) error {
 
@@ -394,10 +394,10 @@ func (k *Keeper) UpdateUserBorrowIdMapping(
 	}
 
 	if isInsert {
-		userVaults.BorrowIds = append(userVaults.BorrowIds, vaultId)
+		userVaults.BorrowIds = append(userVaults.BorrowIds, borrowId)
 	} else {
 		for index, id := range userVaults.BorrowIds {
-			if id == vaultId {
+			if id == borrowId {
 				userVaults.BorrowIds = append(userVaults.BorrowIds[:index], userVaults.BorrowIds[index+1:]...)
 				break
 			}
@@ -521,4 +521,140 @@ func (k *Keeper) GetAssetStatsByPoolIdAndAssetId(ctx sdk.Context, assetID, poolI
 
 	k.cdc.MustUnmarshal(value, &AssetStats)
 	return AssetStats, true
+}
+
+func (k *Keeper) SetLastInterestTime(ctx sdk.Context, interestTime int64) error {
+	store := ctx.KVStore(k.storeKey)
+	timeKey := types.CreateLastInterestTimeKey()
+
+	bz, err := k.cdc.Marshal(&protobuftypes.Int64Value{Value: interestTime})
+	if err != nil {
+		return err
+	}
+
+	store.Set(timeKey, bz)
+	return nil
+}
+
+// GetLastInterestTime gets last time at which interest was accrued
+func (k Keeper) GetLastInterestTime(ctx sdk.Context) int64 {
+	store := ctx.KVStore(k.storeKey)
+	timeKey := types.CreateLastInterestTimeKey()
+	bz := store.Get(timeKey)
+
+	val := protobuftypes.Int64Value{}
+
+	if err := k.cdc.Unmarshal(bz, &val); err != nil {
+		panic(err)
+	}
+
+	return val.Value
+}
+
+func (k *Keeper) UpdateLendIdsMapping(
+	ctx sdk.Context,
+	lendId uint64,
+	isInsert bool,
+) error {
+
+	userVaults, found := k.GetLends(ctx)
+
+	if !found && isInsert {
+		userVaults = types.LendMapping{
+			LendIds: nil,
+		}
+	} else if !found && !isInsert {
+		return types.ErrorLendOwnerNotFound
+	}
+
+	if isInsert {
+		userVaults.LendIds = append(userVaults.LendIds, lendId)
+	} else {
+		for index, id := range userVaults.LendIds {
+			if id == lendId {
+				userVaults.LendIds = append(userVaults.LendIds[:index], userVaults.LendIds[index+1:]...)
+				break
+			}
+		}
+	}
+
+	k.SetLends(ctx, userVaults)
+	return nil
+}
+
+func (k *Keeper) GetLends(ctx sdk.Context) (userVaults types.LendMapping, found bool) {
+	var (
+		store = k.Store(ctx)
+		key   = types.LendsKey
+		value = store.Get(key)
+	)
+	if value == nil {
+		return userVaults, false
+	}
+	k.cdc.MustUnmarshal(value, &userVaults)
+
+	return userVaults, true
+}
+
+func (k *Keeper) SetLends(ctx sdk.Context, userLends types.LendMapping) {
+	var (
+		store = k.Store(ctx)
+		key   = types.LendsKey
+		value = k.cdc.MustMarshal(&userLends)
+	)
+	store.Set(key, value)
+}
+
+func (k *Keeper) UpdateBorrowIdsMapping(
+	ctx sdk.Context,
+	borrowId uint64,
+	isInsert bool,
+) error {
+
+	userVaults, found := k.GetBorrows(ctx)
+
+	if !found && isInsert {
+		userVaults = types.BorrowMapping{
+			BorrowIds: nil,
+		}
+	} else if !found && !isInsert {
+		return types.ErrorLendOwnerNotFound
+	}
+
+	if isInsert {
+		userVaults.BorrowIds = append(userVaults.BorrowIds, borrowId)
+	} else {
+		for index, id := range userVaults.BorrowIds {
+			if id == borrowId {
+				userVaults.BorrowIds = append(userVaults.BorrowIds[:index], userVaults.BorrowIds[index+1:]...)
+				break
+			}
+		}
+	}
+
+	k.SetBorrows(ctx, userVaults)
+	return nil
+}
+
+func (k *Keeper) GetBorrows(ctx sdk.Context) (userBorrows types.BorrowMapping, found bool) {
+	var (
+		store = k.Store(ctx)
+		key   = types.BorrowsKey
+		value = store.Get(key)
+	)
+	if value == nil {
+		return userBorrows, false
+	}
+	k.cdc.MustUnmarshal(value, &userBorrows)
+
+	return userBorrows, true
+}
+
+func (k *Keeper) SetBorrows(ctx sdk.Context, userBorrows types.BorrowMapping) {
+	var (
+		store = k.Store(ctx)
+		key   = types.BorrowsKey
+		value = k.cdc.MustMarshal(&userBorrows)
+	)
+	store.Set(key, value)
 }

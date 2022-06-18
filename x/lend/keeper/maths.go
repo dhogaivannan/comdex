@@ -56,3 +56,22 @@ func (k Keeper) GetBorrowAPYByAssetId(ctx sdk.Context, poolId, assetId uint64, I
 		}
 	}
 }
+
+func (k Keeper) GetLendAPYByAssetId(ctx sdk.Context, poolId, assetId uint64) (lendAPY sdk.Dec, err error) {
+	assetRatesStats, found := k.GetAssetRatesStats(ctx, assetId)
+	if !found {
+		return sdk.ZeroDec(), types.ErrorAssetStatsNotFound
+	}
+	borrowAPY, err := k.GetBorrowAPYByAssetId(ctx, poolId, assetId, false)
+	if err != nil {
+		return sdk.ZeroDec(), err
+	}
+	currentUtilisationRatio, err := k.GetUtilisationRatioByPoolIdAndAssetId(ctx, poolId, assetId)
+	if err != nil {
+		return sdk.ZeroDec(), err
+	}
+	mulFactor := sdk.OneDec().Sub(assetRatesStats.ReserveFactor)
+	lendAPY = borrowAPY.Mul(currentUtilisationRatio).Mul(mulFactor)
+
+	return lendAPY, nil
+}

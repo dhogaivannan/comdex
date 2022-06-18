@@ -151,6 +151,7 @@ func (k *Keeper) AddAssetRatesStats(ctx sdk.Context, records ...types.AssetRates
 				Base:                 msg.Base,
 				Slope1:               msg.Slope1,
 				Slope2:               msg.Slope2,
+				EnableStableBorrow:   msg.EnableStableBorrow,
 				StableBase:           msg.StableBase,
 				StableSlope1:         msg.StableSlope1,
 				StableSlope2:         msg.StableSlope2,

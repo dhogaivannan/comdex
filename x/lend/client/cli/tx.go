@@ -641,6 +641,10 @@ func CmdAddWNewAssetRatesStatsProposal() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			enableStableBorrow, err := ParseUint64SliceFromString(args[2], ",")
+			if err != nil {
+				return err
+			}
 			stableBase, err := ParseStringFromString(args[5], ",")
 			if err != nil {
 				return err
@@ -676,6 +680,7 @@ func CmdAddWNewAssetRatesStatsProposal() *cobra.Command {
 				newBase, _ := sdk.NewDecFromStr(base[i])
 				newSlope1, _ := sdk.NewDecFromStr(slope1[i])
 				newSlope2, _ := sdk.NewDecFromStr(slope2[i])
+				newEnableStableBorrow := ParseBoolFromString(enableStableBorrow[i])
 				newStableBase, _ := sdk.NewDecFromStr(stableBase[i])
 				newStableSlope1, _ := sdk.NewDecFromStr(stableSlope1[i])
 				newStableSlope2, _ := sdk.NewDecFromStr(stableSlope2[i])
@@ -690,6 +695,7 @@ func CmdAddWNewAssetRatesStatsProposal() *cobra.Command {
 					Base:                 newBase,
 					Slope1:               newSlope1,
 					Slope2:               newSlope2,
+					EnableStableBorrow:   newEnableStableBorrow,
 					StableBase:           newStableBase,
 					StableSlope1:         newStableSlope1,
 					StableSlope2:         newStableSlope2,

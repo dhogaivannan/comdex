@@ -7,4 +7,6 @@ import (
 )
 
 func BeginBlocker(ctx sdk.Context, _ abci.RequestBeginBlock, k keeper.Keeper) {
+	k.SetLastInterestTime(ctx, ctx.BlockTime().Unix())
+
 }

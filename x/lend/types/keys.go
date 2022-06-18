@@ -27,7 +27,8 @@ const (
 	// MemStoreKey defines the in-memory store key
 	MemStoreKey = "mem_lend"
 
-	CTokenPrefix = "c/"
+	CTokenPrefix   = "c/"
+	SecondsPerYear = 31557600
 )
 
 var (
@@ -45,6 +46,8 @@ var (
 	LendPairKeyPrefix     = []byte{0x19}
 	BorrowHistoryIdPrefix = []byte{0x25}
 	BorrowPairKeyPrefix   = []byte{0x26}
+	LendsKey              = []byte{0x32}
+	BorrowsKey            = []byte{0x33}
 
 	AssetToPairMappingKeyPrefix           = []byte{0x20}
 	WhitelistedAssetForDenomKeyPrefix     = []byte{0x21}
@@ -55,6 +58,7 @@ var (
 	LendIdToBorrowIdMappingKeyPrefix      = []byte{0x28}
 	AssetStatsByPoolIdAndAssetIdKeyPrefix = []byte{0x29}
 	AssetRatesStatsKeyPrefix              = []byte{0x30}
+	KeyPrefixLastInterestTime             = []byte{0x31}
 )
 
 func AssetKey(id uint64) []byte {
@@ -164,4 +168,10 @@ func LendIdToBorrowIdMappingKey(id uint64) []byte {
 func SetAssetStatsByPoolIdAndAssetId(assetID, pairID uint64) []byte {
 	v := append(AssetStatsByPoolIdAndAssetIdKeyPrefix, sdk.Uint64ToBigEndian(assetID)...)
 	return append(v, sdk.Uint64ToBigEndian(pairID)...)
+}
+
+func CreateLastInterestTimeKey() []byte {
+	var key []byte
+	key = append(key, KeyPrefixLastInterestTime...)
+	return key
 }

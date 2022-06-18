@@ -244,40 +244,57 @@ message AssetRatesStats{
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"slope2\""
   ];
-  string stable_base = 6 [
+  bool enable_stable_borrow = 6 [
+    (gogoproto.moretags) = "yaml:\"enable_stable_borrow\""
+  ];
+  string stable_base = 7 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"stable_base\""
   ];
-  string stable_slope1 = 7 [
+  string stable_slope1 = 8 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"stable_slope1\""
   ];
-  string stable_slope2 = 8 [
+  string stable_slope2 = 9 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"stable_slope2\""
   ];
-  string ltv = 9 [
+  string ltv = 10 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"ltv\""
   ];
-  string liquidation_threshold = 10 [
+  string liquidation_threshold = 11 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"liquidation_threshold\""
   ];
-  string liquidation_penalty = 11 [
+  string liquidation_penalty = 12 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"liquidation_penalty\""
   ];
-  string reserve_factor = 12 [
+  string reserve_factor = 13 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"reserve_factor\""
   ];
 
+}
+
+message LendMapping{
+  repeated uint64 lend_ids = 1 [
+    (gogoproto.customname) = "LendIds",
+    (gogoproto.moretags) = "yaml:\"lend_ids\""
+  ];
+}
+
+message BorrowMapping{
+  repeated uint64 borrow_ids = 1 [
+    (gogoproto.customname) = "BorrowIds",
+    (gogoproto.moretags) = "yaml:\"borrow_ids\""
+  ];
 }
