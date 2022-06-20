@@ -126,7 +126,7 @@ func (k Keeper) LendAsset(ctx sdk.Context, lenderAddr string, AssetId uint64, Am
 	k.SetUserLendIDHistory(ctx, lendPos.ID)
 	k.SetLend(ctx, lendPos)
 	k.SetLendForAddressByAsset(ctx, addr, lendPos.AssetId, lendPos.ID)
-	err = k.UpdateUserLendIdMapping(ctx, lenderAddr, lendPos.ID, true)
+	err = k.UpdateUserLendIdMapping(ctx, lenderAddr, lendPos, true)
 	if err != nil {
 		return err
 	}
@@ -356,7 +356,7 @@ func (k Keeper) CloseLend(ctx sdk.Context, addr string, lendId uint64) error {
 
 	k.DeleteLendForAddressByAsset(ctx, lenderAddr, lendPos.AssetId)
 
-	err = k.UpdateUserLendIdMapping(ctx, addr, lendPos.ID, false)
+	err = k.UpdateUserLendIdMapping(ctx, addr, lendPos, false)
 	if err != nil {
 		return err
 	}
@@ -480,7 +480,7 @@ func (k Keeper) BorrowAsset(ctx sdk.Context, addr string, lendId, pairId uint64,
 		k.SetUserBorrowIDHistory(ctx, borrowPos.ID)
 		k.SetBorrow(ctx, borrowPos)
 		k.SetBorrowForAddressByPair(ctx, lenderAddr, pairId, borrowPos.ID)
-		err = k.UpdateUserBorrowIdMapping(ctx, lendPos.Owner, borrowPos.ID, true)
+		err = k.UpdateUserBorrowIdMapping(ctx, lendPos.Owner, borrowPos, true)
 		if err != nil {
 			return err
 		}
@@ -565,7 +565,7 @@ func (k Keeper) BorrowAsset(ctx sdk.Context, addr string, lendId, pairId uint64,
 			k.SetUserBorrowIDHistory(ctx, borrowPos.ID)
 			k.SetBorrow(ctx, borrowPos)
 			k.SetBorrowForAddressByPair(ctx, lenderAddr, pairId, borrowPos.ID)
-			err = k.UpdateUserBorrowIdMapping(ctx, lendPos.Owner, borrowPos.ID, true)
+			err = k.UpdateUserBorrowIdMapping(ctx, lendPos.Owner, borrowPos, true)
 			if err != nil {
 				return err
 			}
@@ -626,7 +626,7 @@ func (k Keeper) BorrowAsset(ctx sdk.Context, addr string, lendId, pairId uint64,
 			k.SetUserBorrowIDHistory(ctx, borrowPos.ID)
 			k.SetBorrow(ctx, borrowPos)
 			k.SetBorrowForAddressByPair(ctx, lenderAddr, pairId, borrowPos.ID)
-			err = k.UpdateUserBorrowIdMapping(ctx, lendPos.Owner, borrowPos.ID, true)
+			err = k.UpdateUserBorrowIdMapping(ctx, lendPos.Owner, borrowPos, true)
 			if err != nil {
 				return err
 			}
@@ -732,7 +732,7 @@ func (k Keeper) DepositBorrowAsset(ctx sdk.Context, borrowId uint64, addr string
 		k.SetUserBorrowIDHistory(ctx, borrowPos.ID)
 		k.SetBorrow(ctx, borrowPos)
 		k.SetBorrowForAddressByPair(ctx, lenderAddr, pairId, borrowPos.ID)
-		err = k.UpdateUserBorrowIdMapping(ctx, lendPos.Owner, borrowPos.ID, true)
+		err = k.UpdateUserBorrowIdMapping(ctx, lendPos.Owner, borrowPos, true)
 		if err != nil {
 			return err
 		}
@@ -779,7 +779,7 @@ func (k Keeper) DepositBorrowAsset(ctx sdk.Context, borrowId uint64, addr string
 			k.SetUserBorrowIDHistory(ctx, borrowPos.ID)
 			k.SetBorrow(ctx, borrowPos)
 			k.SetBorrowForAddressByPair(ctx, lenderAddr, pairId, borrowPos.ID)
-			err = k.UpdateUserBorrowIdMapping(ctx, lendPos.Owner, borrowPos.ID, true)
+			err = k.UpdateUserBorrowIdMapping(ctx, lendPos.Owner, borrowPos, true)
 			if err != nil {
 				return err
 			}
@@ -808,7 +808,7 @@ func (k Keeper) DepositBorrowAsset(ctx sdk.Context, borrowId uint64, addr string
 			k.SetUserBorrowIDHistory(ctx, borrowPos.ID)
 			k.SetBorrow(ctx, borrowPos)
 			k.SetBorrowForAddressByPair(ctx, lenderAddr, pairId, borrowPos.ID)
-			err = k.UpdateUserBorrowIdMapping(ctx, lendPos.Owner, borrowPos.ID, true)
+			err = k.UpdateUserBorrowIdMapping(ctx, lendPos.Owner, borrowPos, true)
 			if err != nil {
 				return err
 			}
@@ -891,7 +891,7 @@ func (k Keeper) CloseBorrow(ctx sdk.Context, borrowerAddr string, borrowId uint6
 	if err := k.bank.SendCoinsFromAccountToModule(ctx, addr, pool.ModuleName, amt); err != nil {
 		return err
 	}
-	err := k.UpdateUserBorrowIdMapping(ctx, lendPos.Owner, borrowPos.ID, false)
+	err := k.UpdateUserBorrowIdMapping(ctx, lendPos.Owner, borrowPos, false)
 	if err != nil {
 		return err
 	}

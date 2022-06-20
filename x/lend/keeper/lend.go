@@ -226,7 +226,7 @@ func (k *Keeper) DeleteLendForAddressByAsset(ctx sdk.Context, address sdk.AccAdd
 func (k *Keeper) UpdateUserLendIdMapping(
 	ctx sdk.Context,
 	lendOwner string,
-	lendId uint64,
+	lendId types.LendAsset,
 	isInsert bool,
 ) error {
 
@@ -234,19 +234,19 @@ func (k *Keeper) UpdateUserLendIdMapping(
 
 	if !found && isInsert {
 		userVaults = types.UserLendIdMapping{
-			Owner:   lendOwner,
-			LendIds: nil,
+			Owner: lendOwner,
+			Lends: nil,
 		}
 	} else if !found && !isInsert {
 		return types.ErrorLendOwnerNotFound
 	}
 
 	if isInsert {
-		userVaults.LendIds = append(userVaults.LendIds, lendId)
+		userVaults.Lends = append(userVaults.Lends, lendId)
 	} else {
-		for index, id := range userVaults.LendIds {
+		for index, id := range userVaults.Lends {
 			if id == lendId {
-				userVaults.LendIds = append(userVaults.LendIds[:index], userVaults.LendIds[index+1:]...)
+				userVaults.Lends = append(userVaults.Lends[:index], userVaults.Lends[index+1:]...)
 				break
 			}
 		}
@@ -378,7 +378,7 @@ func (k *Keeper) DeleteBorrowForAddressByPair(ctx sdk.Context, address sdk.AccAd
 func (k *Keeper) UpdateUserBorrowIdMapping(
 	ctx sdk.Context,
 	lendOwner string,
-	borrowId uint64,
+	borrowId types.BorrowAsset,
 	isInsert bool,
 ) error {
 
@@ -386,19 +386,19 @@ func (k *Keeper) UpdateUserBorrowIdMapping(
 
 	if !found && isInsert {
 		userVaults = types.UserBorrowIdMapping{
-			Owner:     lendOwner,
-			BorrowIds: nil,
+			Owner:   lendOwner,
+			Borrows: nil,
 		}
 	} else if !found && !isInsert {
 		return types.ErrorLendOwnerNotFound
 	}
 
 	if isInsert {
-		userVaults.BorrowIds = append(userVaults.BorrowIds, borrowId)
+		userVaults.Borrows = append(userVaults.Borrows, borrowId)
 	} else {
-		for index, id := range userVaults.BorrowIds {
+		for index, id := range userVaults.Borrows {
 			if id == borrowId {
-				userVaults.BorrowIds = append(userVaults.BorrowIds[:index], userVaults.BorrowIds[index+1:]...)
+				userVaults.Borrows = append(userVaults.Borrows[:index], userVaults.Borrows[index+1:]...)
 				break
 			}
 		}

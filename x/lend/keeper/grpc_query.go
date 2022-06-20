@@ -86,7 +86,7 @@ func (q queryServer) QueryAllLendByOwner(c context.Context, req *types.QueryAllL
 	}
 	var (
 		ctx     = sdk.UnwrapSDKContext(c)
-		lendIds []uint64
+		lendIds []types.LendAsset
 	)
 
 	_, err := sdk.AccAddressFromBech32(req.Owner)
@@ -95,14 +95,13 @@ func (q queryServer) QueryAllLendByOwner(c context.Context, req *types.QueryAllL
 	}
 
 	userVaultAssetData, _ := q.GetUserLends(ctx, req.Owner)
-
-	for _, data := range userVaultAssetData.LendIds {
+	for _, data := range userVaultAssetData.Lends {
 		lendIds = append(lendIds, data)
 
 	}
 
 	return &types.QueryAllLendByOwnerResponse{
-		LendIds: lendIds,
+		Lends: lendIds,
 	}, nil
 }
 
@@ -336,7 +335,7 @@ func (q queryServer) QueryAllBorrowByOwner(c context.Context, req *types.QueryAl
 	}
 	var (
 		ctx       = sdk.UnwrapSDKContext(c)
-		borrowIds []uint64
+		borrowIds []types.BorrowAsset
 	)
 
 	_, err := sdk.AccAddressFromBech32(req.Owner)
@@ -346,13 +345,13 @@ func (q queryServer) QueryAllBorrowByOwner(c context.Context, req *types.QueryAl
 
 	userVaultAssetData, _ := q.GetUserBorrows(ctx, req.Owner)
 
-	for _, data := range userVaultAssetData.BorrowIds {
+	for _, data := range userVaultAssetData.Borrows {
 		borrowIds = append(borrowIds, data)
 
 	}
 
 	return &types.QueryAllBorrowByOwnerResponse{
-		BorrowIds: borrowIds,
+		Borrows: borrowIds,
 	}, nil
 }
 
