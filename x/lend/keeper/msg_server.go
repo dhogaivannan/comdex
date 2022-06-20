@@ -196,7 +196,7 @@ func (m msgServer) DepositBorrow(goCtx context.Context, borrow *types.MsgDeposit
 		return nil, err
 	}
 
-	if err := m.keeper.DepositBorrowAsset(ctx, borrowerAddr, borrow.Amount); err != nil {
+	if err := m.keeper.DepositBorrowAsset(ctx, borrow.BorrowId, borrow.Borrower, borrow.Amount); err != nil {
 		return nil, err
 	}
 

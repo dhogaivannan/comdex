@@ -117,9 +117,10 @@ func (msg *MsgBorrow) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func NewMsgRepay(borrower sdk.AccAddress, amount sdk.Coin) *MsgRepay {
+func NewMsgRepay(borrower sdk.AccAddress, borrowId uint64, amount sdk.Coin) *MsgRepay {
 	return &MsgRepay{
 		Borrower: borrower.String(),
+		BorrowId: borrowId,
 		Amount:   amount,
 	}
 }

@@ -27,7 +27,7 @@ const (
 	// MemStoreKey defines the in-memory store key
 	MemStoreKey = "mem_lend"
 
-	CTokenPrefix   = "c/"
+	CTokenPrefix   = "uc"
 	SecondsPerYear = 31557600
 )
 

@@ -43,6 +43,7 @@ func GetTxCmd() *cobra.Command {
 		txCloseLend(),
 		txBorrowAsset(),
 		txRepayAsset(), //including functionality of both repaying and closing position
+		txDepositBorrowAsset(),
 		txFundModuleAccounts(),
 	)
 
@@ -227,21 +228,58 @@ func txBorrowAsset() *cobra.Command {
 
 func txRepayAsset() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "repay [amount]",
+		Use:   "repay [borrow-id] [amount]",
 		Short: "repay borrowed asset",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			asset, err := sdk.ParseCoinNormalized(args[0])
+			borrowId, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgRepay(ctx.GetFromAddress(), asset)
+			asset, err := sdk.ParseCoinNormalized(args[1])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgRepay(ctx.GetFromAddress(), borrowId, asset)
+
+			return tx.GenerateOrBroadcastTxCLI(ctx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+
+}
+
+func txDepositBorrowAsset() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "deposit-borrow [borrow-id] [amount]",
+		Short: "deposit borrowed asset",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			borrowId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			asset, err := sdk.ParseCoinNormalized(args[1])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgDepositBorrow(ctx.GetFromAddress(), borrowId, asset)
 
 			return tx.GenerateOrBroadcastTxCLI(ctx, cmd.Flags(), msg)
 		},
