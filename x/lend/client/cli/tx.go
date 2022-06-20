@@ -42,6 +42,7 @@ func GetTxCmd() *cobra.Command {
 		txDeposit(),
 		txCloseLend(),
 		txBorrowAsset(),
+		txDrawAsset(),
 		txRepayAsset(), //including functionality of both repaying and closing position
 		txDepositBorrowAsset(),
 		txFundModuleAccounts(),
@@ -248,6 +249,38 @@ func txRepayAsset() *cobra.Command {
 			}
 
 			msg := types.NewMsgRepay(ctx.GetFromAddress(), borrowId, asset)
+
+			return tx.GenerateOrBroadcastTxCLI(ctx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+
+}
+
+func txDrawAsset() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "draw [borrow-id] [amount]",
+		Short: "draw borrowed asset",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			borrowId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			asset, err := sdk.ParseCoinNormalized(args[1])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgDraw(ctx.GetFromAddress(), borrowId, asset)
 
 			return tx.GenerateOrBroadcastTxCLI(ctx, cmd.Flags(), msg)
 		},
