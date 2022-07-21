@@ -118,7 +118,7 @@ func (a AppModule) RegisterServices(configurator module.Configurator) {
 }
 
 func (a AppModule) BeginBlock(ctx sdk.Context, req abcitypes.RequestBeginBlock) {
-	BeginBlocker(ctx, req, a.keeper)
+	// BeginBlocker(ctx, req, a.keeper)
 }
 
 func (a AppModule) EndBlock(_ sdk.Context, _ abcitypes.RequestEndBlock) []abcitypes.ValidatorUpdate {
