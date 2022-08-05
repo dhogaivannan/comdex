@@ -25,7 +25,7 @@ linters:
   disable-all: true
   enable:
     - asciicheck
-    - bodyclose
+    #- bodyclose
     - deadcode
     - depguard
     - dogsled
@@ -43,7 +43,7 @@ linters:
     #- goerr113
     - gofmt
     - goimports
-    - golint
+    - revive
     #- gomnd
     - gomodguard
     - goprintffuncname
@@ -53,14 +53,14 @@ linters:
     - ineffassign
     - interfacer
     #- lll
-    - maligned
+    - fieldalignment
     - misspell
     - nakedret
     #- nestif
     #- nolintlint
     - prealloc
     - rowserrcheck
-    - scopelint
+    - exportloopref
     - staticcheck
     - structcheck
     - stylecheck
